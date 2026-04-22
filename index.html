@@ -2339,8 +2339,9 @@ const CULTURE_FIT_ITEMS = [
 // ===============================
 
 let currentIdx = 0;
-let answers = []; // [{most: type, least: type}, ...]
+let answers = [];
 let applicant = { name:"", position:"" };
+let shuffledOrders = []; // 문항별 선택지 순서 (시작 시 한 번 섞어서 고정)
 
 // DOM
 const $ = (id) => document.getElementById(id);
@@ -2393,17 +2394,25 @@ function startAssessment() {
   answers = new Array(QUESTIONS.length).fill(null).map(() => ({ most:null, least:null }));
   currentIdx = 0;
   
+  // 각 문항의 선택지 순서를 미리 무작위로 섞어서 고정
+  // (렌더링 때마다 바뀌면 안 되므로 여기서 한 번만 생성)
+  shuffledOrders = QUESTIONS.map(q => {
+    const order = q.o.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return order;
+  });
+  
   $('screen-guide').classList.remove('active');
   $('screen-intro').classList.remove('active');
   $('screen-question').classList.add('active');
   $('header').style.display = 'flex';
   $('progressWrap').style.display = 'flex';
   
-  // 페이지 상단으로 스크롤
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  
   renderQuestion();
-  // 첫 문항도 반짝임 효과
   setTimeout(flashQuestionCard, 500);
 }
 
@@ -2418,24 +2427,27 @@ function renderQuestion() {
   container.innerHTML = '';
   
   const answer = answers[currentIdx];
+  // 현재 문항의 섞인 순서 (원래 인덱스 배열)
+  const order = shuffledOrders[currentIdx] || q.o.map((_, i) => i);
   
-  q.o.forEach((choice, idx) => {
+  order.forEach((originalIdx) => {
+    const choice = q.o[originalIdx];
     const el = document.createElement('div');
     el.className = 'choice';
-    if (answer.most === idx) el.classList.add('picked-most');
-    else if (answer.least === idx) el.classList.add('picked-least');
+    if (answer.most === originalIdx) el.classList.add('picked-most');
+    else if (answer.least === originalIdx) el.classList.add('picked-least');
     
     el.innerHTML = `
       <div class="choice-text">${choice.txt}</div>
       <div class="choice-buttons">
-        <button class="pick-btn most ${answer.most === idx ? 'selected' : ''}" data-idx="${idx}" data-pick="most">가까운 것</button>
-        <button class="pick-btn least ${answer.least === idx ? 'selected' : ''}" data-idx="${idx}" data-pick="least">먼 것</button>
+        <button class="pick-btn most ${answer.most === originalIdx ? 'selected' : ''}" data-idx="${originalIdx}" data-pick="most">가까운 것</button>
+        <button class="pick-btn least ${answer.least === originalIdx ? 'selected' : ''}" data-idx="${originalIdx}" data-pick="least">먼 것</button>
       </div>
     `;
     container.appendChild(el);
   });
   
-  // 버튼 이벤트
+  // 버튼 이벤트 (originalIdx 기준으로 저장)
   container.querySelectorAll('.pick-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -2443,7 +2455,6 @@ function renderQuestion() {
       const pick = btn.dataset.pick;
       
       if (pick === 'most') {
-        // most로 선택. 기존 least와 겹치면 least 초기화
         answers[currentIdx].most = (answers[currentIdx].most === idx) ? null : idx;
         if (answers[currentIdx].least === idx) answers[currentIdx].least = null;
       } else {
@@ -2471,7 +2482,7 @@ function renderQuestion() {
     nextHint.innerHTML = '마지막 문항입니다';
     nextHint.className = complete ? 'next-hint active' : 'next-hint';
   } else {
-    const nextNum = currentIdx + 2; // 다음 문항 번호 (1-indexed)
+    const nextNum = currentIdx + 2;
     const remaining = QUESTIONS.length - currentIdx - 1;
     nextHint.innerHTML = `다음 <span class="num">${String(nextNum).padStart(2, '0')}</span>번 · 남은 문항 ${remaining}`;
     nextHint.className = complete ? 'next-hint active' : 'next-hint';
@@ -3090,7 +3101,7 @@ function generateInfographic(includeQuestions = true) {
     const sectionCount = sections.filter(s => s.items.length > 0).length;
     H = 1500 + (sectionCount * 50) + (totalQCount * 122);
   } else {
-    H = 1500;  // 질문지 없는 요약 버전
+    H = 2000;  // 요약 버전: 신뢰도·문화핏 카드까지 여유있게
   }
   
   canvas.width = W;
