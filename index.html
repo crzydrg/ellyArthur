@@ -1,0 +1,3545 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DISC 검사">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#F5F1EA">
+<title>ELLYARTHUR — DISC 성향 검사</title>
+<style>
+  /* 시스템 폰트 사용으로 오프라인/로컬 파일에서도 완벽 작동 */
+  :root {
+    --serif: Georgia, 'Cormorant Garamond', 'Times New Roman', serif;
+    --serif-kr: 'Nanum Myeongjo', 'Apple SD Gothic Neo', 'Noto Serif KR', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard', 'Helvetica Neue', sans-serif;
+  }
+</style>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  /* iOS Safari 기본 스타일 리셋 */
+  input, select, button, textarea {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 0;
+    font-family: inherit;
+  }
+  
+  select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%238B6F47' d='M6 8L0 0h12z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px !important;
+  }
+  
+  button {
+    background: none;
+    cursor: pointer;
+  }
+  
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  :root {
+    --bg: #F5F1EA;
+    --bg-2: #EFE8DC;
+    --ink: #2B2620;
+    --ink-soft: #6B6258;
+    --line: #D9CFBE;
+    --accent: #8B6F47;
+    --accent-soft: #C4A77D;
+    --gold: #A88B5C;
+    --card: #FBF7F0;
+    --shadow: 0 1px 3px rgba(43,38,32,.06), 0 8px 24px rgba(43,38,32,.04);
+  }
+  
+  html, body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: 
+      radial-gradient(circle at 15% 20%, rgba(196, 167, 125, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(139, 111, 71, 0.06) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .app {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* ===== 공통 헤더 ===== */
+  .header {
+    padding: 28px 40px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    background: rgba(245, 241, 234, 0.92);
+    backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 10;
+  }
+  
+  .brand {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    letter-spacing: 0.28em;
+    color: var(--ink);
+  }
+  
+  .brand .amp {
+    color: var(--accent);
+    font-style: italic;
+    margin: 0 4px;
+  }
+  
+  .brand-sub {
+    font-family: var(--serif-kr);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+  
+  /* ===== 진행바 ===== */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .progress-text {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--ink);
+    letter-spacing: 0.05em;
+  }
+  
+  .progress-text .current {
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 26px;
+  }
+  
+  .progress-text .total {
+    color: var(--ink-soft);
+  }
+  
+  .progress-bar {
+    width: 180px;
+    height: 2px;
+    background: var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  /* ===== 시작 화면 ===== */
+  .screen {
+    flex: 1;
+    display: none;
+    padding: 60px 48px 48px;
+    animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .screen.active { display: flex; flex-direction: column; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .intro {
+    max-width: 720px;
+    margin: auto;
+    text-align: center;
+  }
+  
+  .intro-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    margin-bottom: 24px;
+  }
+  
+  .intro-title {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 72px;
+    line-height: 1.05;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    margin-bottom: 12px;
+  }
+  
+  .intro-title-kr {
+    font-family: var(--serif-kr);
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--ink-soft);
+    letter-spacing: 0.3em;
+    margin-bottom: 48px;
+  }
+  
+  .intro-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--accent);
+    margin: 0 auto 40px;
+  }
+  
+  .intro-desc {
+    font-size: 17px;
+    line-height: 1.9;
+    color: var(--ink-soft);
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+  
+  .intro-meta {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin-bottom: 56px;
+    padding: 32px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  
+  .meta-item {
+    text-align: center;
+  }
+  
+  .meta-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-soft);
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+  }
+  
+  .meta-value {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  
+  .meta-value .unit {
+    font-size: 16px;
+    color: var(--ink-soft);
+    margin-left: 4px;
+    font-weight: 400;
+  }
+  
+  /* ===== 이름 입력 ===== */
+  .input-group {
+    margin-bottom: 32px;
+    text-align: left;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .input-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    margin-bottom: 10px;
+    display: block;
+  }
+  
+  .input-field {
+    width: 100%;
+    padding: 16px 0;
+    font-family: var(--serif-kr);
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  
+  .input-field:focus {
+    border-bottom-color: var(--accent);
+  }
+  
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  
+  /* ===== 버튼 ===== */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 56px;
+    background: var(--ink);
+    color: var(--bg);
+    font-family: var(--serif-kr);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    left: -100%; top: 0;
+    width: 100%; height: 100%;
+    background: var(--accent);
+    transition: left 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 0;
+  }
+  
+  .btn-primary:hover::before { left: 0; }
+  .btn-primary span { position: relative; z-index: 1; }
+  
+  .btn-primary:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  
+  .btn-primary:disabled::before { display: none; }
+  
+  .btn-secondary {
+    padding: 16px 40px;
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: var(--serif-kr);
+    font-size: 15px;
+    letter-spacing: 0.15em;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  
+  /* ===== 문항 화면 ===== */
+  .question-screen {
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 40px 20px;
+  }
+  
+  .question-number {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: 0.25em;
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+  
+  .question-card {
+    background: linear-gradient(135deg, #FBF7F0 0%, #F5EDDF 100%);
+    border: 1px solid var(--accent-soft);
+    padding: 40px 48px;
+    margin-bottom: 32px;
+    position: relative;
+    box-shadow: 
+      0 2px 6px rgba(139, 111, 71, 0.08),
+      0 12px 32px rgba(139, 111, 71, 0.06);
+    overflow: hidden;
+  }
+  
+  /* 문항 넘어갈 때 반짝이는 애니메이션 */
+  .question-card.flash {
+    animation: cardFlash 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .question-card.flash::before {
+    animation: barPulse 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  @keyframes cardFlash {
+    0% {
+      transform: scale(1);
+      box-shadow: 
+        0 2px 6px rgba(139, 111, 71, 0.08),
+        0 12px 32px rgba(139, 111, 71, 0.06);
+      border-color: var(--accent-soft);
+    }
+    25% {
+      transform: scale(1.015);
+      box-shadow: 
+        0 0 0 3px rgba(196, 167, 125, 0.3),
+        0 8px 16px rgba(139, 111, 71, 0.18),
+        0 20px 48px rgba(139, 111, 71, 0.12);
+      border-color: var(--accent);
+    }
+    60% {
+      transform: scale(1);
+      box-shadow: 
+        0 0 0 1px rgba(196, 167, 125, 0.15),
+        0 4px 10px rgba(139, 111, 71, 0.12),
+        0 16px 40px rgba(139, 111, 71, 0.08);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 
+        0 2px 6px rgba(139, 111, 71, 0.08),
+        0 12px 32px rgba(139, 111, 71, 0.06);
+      border-color: var(--accent-soft);
+    }
+  }
+  
+  @keyframes barPulse {
+    0% { width: 6px; }
+    25% { width: 10px; background: linear-gradient(to bottom, #D4A962, var(--accent)); }
+    100% { width: 6px; }
+  }
+  
+  /* 쉐이머 효과 - 왼쪽에서 오른쪽으로 빛이 스쳐지나감 */
+  .question-card.flash .shimmer {
+    display: block;
+  }
+  
+  .shimmer {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.6) 50%,
+      transparent 100%
+    );
+    animation: shimmerSweep 1s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  @keyframes shimmerSweep {
+    0% { left: -60%; }
+    100% { left: 160%; }
+  }
+  
+  .question-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--accent), var(--accent-soft));
+  }
+  
+  .question-card::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background-image: 
+      radial-gradient(circle, var(--accent-soft) 1px, transparent 1px);
+    background-size: 8px 8px;
+    opacity: 0.4;
+  }
+  
+  .question-quote {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  
+  .question-title {
+    font-family: var(--serif-kr);
+    font-size: 38px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--ink);
+    margin-bottom: 0;
+    letter-spacing: -0.01em;
+  }
+  
+  .question-title::before {
+    content: '"';
+    font-family: var(--serif);
+    font-size: 56px;
+    color: var(--accent);
+    line-height: 0;
+    margin-right: 8px;
+    vertical-align: -12px;
+    opacity: 0.6;
+  }
+  
+  .question-title::after {
+    content: '"';
+    font-family: var(--serif);
+    font-size: 56px;
+    color: var(--accent);
+    line-height: 0;
+    margin-left: 4px;
+    vertical-align: -12px;
+    opacity: 0.6;
+  }
+  
+  .question-hint {
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin-bottom: 40px;
+    font-weight: 400;
+    padding: 16px 20px;
+    background: rgba(196, 167, 125, 0.08);
+    border-left: 2px solid var(--accent-soft);
+    line-height: 1.7;
+  }
+  
+  .hint-highlight {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .choice {
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+  }
+  
+  .choice:hover {
+    border-color: var(--accent-soft);
+    transform: translateX(4px);
+  }
+  
+  .choice-text {
+    flex: 1;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--ink);
+    font-weight: 400;
+  }
+  
+  .choice-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .pick-btn {
+    width: 80px;
+    padding: 12px 0;
+    font-family: var(--serif-kr);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  
+  .pick-btn.most {
+    border-color: var(--accent);
+  }
+  
+  .pick-btn.least {
+    border-color: var(--line);
+  }
+  
+  .pick-btn:hover {
+    transform: translateY(-1px);
+  }
+  
+  .pick-btn.most:hover, .pick-btn.most.selected {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  
+  .pick-btn.least:hover, .pick-btn.least.selected {
+    background: var(--ink-soft);
+    color: white;
+    border-color: var(--ink-soft);
+  }
+  
+  .choice.picked-most {
+    border-color: var(--accent);
+    background: linear-gradient(to right, rgba(139, 111, 71, 0.04), transparent);
+  }
+  
+  .choice.picked-least {
+    border-color: var(--ink-soft);
+    opacity: 0.65;
+  }
+  
+  /* ===== 네비게이션 ===== */
+  .nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 40px 0 20px;
+    margin-top: 40px;
+    border-top: 1px solid var(--line);
+  }
+  
+  .status-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink-soft);
+  }
+  
+  .status-text.ready {
+    color: var(--accent);
+  }
+  
+  /* 다음 버튼 + 다음 문항 힌트 */
+  .next-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .next-hint {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-soft);
+    letter-spacing: 0.12em;
+    text-align: center;
+    min-height: 18px;
+    transition: color 0.3s;
+  }
+  
+  .next-hint.active {
+    color: var(--accent);
+  }
+  
+  .next-hint .num {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--ink);
+    margin: 0 3px;
+  }
+  
+  /* ===== 결과 화면 ===== */
+  .result-screen {
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 40px;
+  }
+  
+  .result-header {
+    text-align: center;
+    margin-bottom: 56px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--line);
+  }
+  
+  .result-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--accent);
+    letter-spacing: 0.3em;
+    margin-bottom: 16px;
+  }
+  
+  .result-name {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 56px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  
+  .result-meta {
+    font-family: var(--serif-kr);
+    font-size: 14px;
+    color: var(--ink-soft);
+    letter-spacing: 0.15em;
+  }
+  
+  /* ===== 유형 카드 ===== */
+  .type-showcase {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 56px;
+  }
+  
+  .primary-type {
+    background: var(--card);
+    padding: 48px;
+    border: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .primary-type::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: var(--accent);
+  }
+  
+  .type-tag {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+  }
+  
+  .type-letter {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 120px;
+    line-height: 0.9;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  
+  .type-name {
+    font-family: var(--serif-kr);
+    font-weight: 500;
+    font-size: 28px;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+  
+  .type-desc {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--ink-soft);
+    font-weight: 300;
+  }
+  
+  /* 점수 차트 */
+  .score-chart {
+    background: var(--card);
+    padding: 48px;
+    border: 1px solid var(--line);
+  }
+  
+  .chart-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    margin-bottom: 32px;
+  }
+  
+  .score-row {
+    margin-bottom: 24px;
+  }
+  
+  .score-row:last-child { margin-bottom: 0; }
+  
+  .score-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  
+  .score-label {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  
+  .score-letter {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 28px;
+    color: var(--ink);
+  }
+  
+  .score-type-name {
+    font-family: var(--serif-kr);
+    font-size: 14px;
+    color: var(--ink-soft);
+    letter-spacing: 0.1em;
+  }
+  
+  .score-value {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  
+  .score-bar {
+    height: 3px;
+    background: var(--bg-2);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .score-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+    animation: fillBar 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  
+  @keyframes fillBar {
+    to { transform: scaleX(1); }
+  }
+  
+  /* ===== 적합도 섹션 ===== */
+  .section {
+    margin-bottom: 56px;
+  }
+  
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  
+  .section-number {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+  }
+  
+  .section-title {
+    font-family: var(--serif-kr);
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  
+  .fit-card {
+    background: var(--card);
+    padding: 40px;
+    border: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  
+  .fit-score {
+    text-align: center;
+  }
+  
+  .fit-ring {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    margin: 0 auto 16px;
+  }
+  
+  .fit-ring svg {
+    transform: rotate(-90deg);
+  }
+  
+  .fit-ring .bg {
+    fill: none;
+    stroke: var(--bg-2);
+    stroke-width: 4;
+  }
+  
+  .fit-ring .fg {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 4;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .fit-percent {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 54px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  
+  .fit-percent .pct {
+    font-size: 24px;
+    color: var(--ink-soft);
+    margin-left: 2px;
+  }
+  
+  .fit-grade {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 20px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+  }
+  
+  .fit-desc h4 {
+    font-family: var(--serif-kr);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  
+  .fit-desc p {
+    font-size: 15px;
+    line-height: 1.85;
+    color: var(--ink-soft);
+    font-weight: 300;
+  }
+  
+  .fit-breakdown {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  
+  .fit-point {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    padding-left: 16px;
+    position: relative;
+  }
+  
+  .fit-point::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+  
+  .fit-point strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  
+  /* ===== 일관성 + 문화핏 ===== */
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  
+  .meta-card {
+    background: var(--card);
+    padding: 32px;
+    border: 1px solid var(--line);
+  }
+  
+  .meta-card-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    margin-bottom: 16px;
+  }
+  
+  .meta-card-value {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 44px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  
+  .meta-card-grade {
+    font-family: var(--serif-kr);
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+  
+  .meta-card-desc {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    font-weight: 300;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  
+  .warning .meta-card-value {
+    color: #B54D3E;
+  }
+  
+  /* ===== 면접 질문 ===== */
+  .interview-list {
+    counter-reset: q;
+  }
+  
+  .interview-item {
+    background: var(--card);
+    padding: 32px 40px;
+    border: 1px solid var(--line);
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  
+  .interview-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--accent);
+    line-height: 1;
+  }
+  
+  .interview-q h4 {
+    font-family: var(--serif-kr);
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  
+  .interview-q .intent {
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-style: italic;
+    line-height: 1.6;
+  }
+  
+  .interview-q .intent strong {
+    font-style: normal;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  
+  /* ===== 액션 버튼 ===== */
+  .action-bar {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+  }
+  
+  /* ===== 태블릿 환경 최적화 ===== */
+  @media (max-width: 900px) {
+    .intro-title { font-size: 56px; }
+    .type-showcase, .fit-card, .meta-grid { grid-template-columns: 1fr; }
+    .fit-card { text-align: center; }
+    .header { padding: 20px 24px; }
+    .screen { padding: 40px 24px; }
+    .choice { flex-direction: column; align-items: stretch; gap: 16px; }
+    .choice-buttons { justify-content: flex-end; }
+    
+    .question-card { padding: 32px 28px; }
+    .question-title { font-size: 28px; line-height: 1.45; }
+    .question-title::before, 
+    .question-title::after { font-size: 42px; }
+  }
+  
+  /* ===== 면접관 코드 게이트 ===== */
+  .gate {
+    max-width: 560px;
+    margin: auto;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .gate-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 32px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 36px;
+    color: var(--accent);
+  }
+  
+  .gate-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--accent);
+    letter-spacing: 0.25em;
+    margin-bottom: 20px;
+  }
+  
+  .gate-title {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 48px;
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  
+  .gate-msg {
+    font-family: var(--serif-kr);
+    font-size: 19px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+  
+  .gate-sub {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.8;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+  
+  .gate-divider {
+    width: 40px;
+    height: 1px;
+    background: var(--accent);
+    margin: 0 auto 40px;
+  }
+  
+  .code-section {
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 48px 40px;
+    margin-bottom: 24px;
+  }
+  
+  .code-section-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    margin-bottom: 24px;
+  }
+  
+  .code-display {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  
+  .code-box {
+    width: 60px;
+    height: 76px;
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 38px;
+    color: var(--ink);
+    background: var(--bg);
+    transition: all 0.25s;
+  }
+  
+  .code-box.filled {
+    border-color: var(--accent);
+    background: white;
+  }
+  
+  .code-box.error {
+    border-color: #B54D3E;
+    animation: shake 0.4s;
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+  
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  
+  .key {
+    aspect-ratio: 1.4 / 1;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 26px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  
+  .key:hover, .key:active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  
+  .key.clear {
+    font-family: var(--serif-kr);
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+  }
+  
+  .gate-error {
+    font-family: var(--serif-kr);
+    font-size: 14px;
+    color: #B54D3E;
+    margin-top: 16px;
+    min-height: 20px;
+    letter-spacing: 0.05em;
+  }
+  
+  /* ===== 저장 버튼 그룹 ===== */
+  .save-menu {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .save-options {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: var(--card);
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 32px rgba(43,38,32,.12);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s;
+    z-index: 100;
+  }
+  
+  .save-options.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-12px);
+  }
+  
+  .save-option {
+    display: block;
+    width: 100%;
+    padding: 16px 24px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--serif-kr);
+    font-size: 14px;
+    color: var(--ink);
+    text-align: left;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .save-option:last-child { border-bottom: none; }
+  .save-option:hover { background: var(--bg-2); color: var(--accent); }
+  
+  .save-option-icon {
+    display: inline-block;
+    margin-right: 10px;
+    color: var(--accent);
+    font-family: var(--serif);
+    font-style: italic;
+  }
+  
+  /* ===== 저장 중 오버레이 ===== */
+  .saving-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(245, 241, 234, 0.95);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    backdrop-filter: blur(4px);
+  }
+  
+  .saving-overlay.show { display: flex; }
+  
+  .saving-content {
+    text-align: center;
+  }
+  
+  .saving-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 24px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+  }
+  
+  .saving-dots::after {
+    content: '...';
+    animation: dots 1.2s infinite;
+    display: inline-block;
+  }
+  
+  @keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+  }
+  
+  /* ===== 인쇄 스타일 ===== */
+  @media print {
+    .header, .action-bar, .nav-bar { display: none !important; }
+    body { background: white; }
+    .screen { padding: 20px; }
+  }
+  
+  /* ===== 응시 안내 화면 ===== */
+  .guide {
+    max-width: 820px;
+    margin: auto;
+    padding: 20px;
+  }
+  
+  .guide-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--accent);
+    letter-spacing: 0.25em;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .guide-title {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 56px;
+    line-height: 1.1;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  
+  .guide-title-kr {
+    font-family: var(--serif-kr);
+    font-weight: 400;
+    font-size: 18px;
+    color: var(--ink-soft);
+    letter-spacing: 0.3em;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .guide-divider {
+    width: 50px;
+    height: 1px;
+    background: var(--accent);
+    margin: 0 auto 48px;
+  }
+  
+  .guide-intro {
+    font-family: var(--serif-kr);
+    font-size: 17px;
+    line-height: 1.9;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 48px;
+    font-weight: 400;
+  }
+  
+  .guide-intro strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  
+  .guide-steps {
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 40px 44px;
+    margin-bottom: 40px;
+  }
+  
+  .guide-steps-title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  
+  .guide-step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 24px;
+    align-items: start;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  
+  .guide-step:last-child { border-bottom: none; }
+  
+  .guide-step-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 32px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  
+  .guide-step-body h4 {
+    font-family: var(--serif-kr);
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  
+  .guide-step-body p {
+    font-family: var(--serif-kr);
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  
+  .guide-step-body p strong {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  
+  /* 예시 선택지 프리뷰 */
+  .guide-example {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 16px 20px;
+    margin-top: 12px;
+  }
+  
+  .guide-example-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    margin-bottom: 10px;
+  }
+  
+  .guide-example-q {
+    font-family: var(--serif-kr);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  
+  .guide-example-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    background: white;
+    border: 1px solid var(--line);
+    font-size: 13px;
+  }
+  
+  .guide-example-row.picked-most {
+    border-color: var(--accent);
+    background: linear-gradient(to right, rgba(139, 111, 71, 0.06), white);
+  }
+  
+  .guide-example-row.picked-least {
+    border-color: var(--ink-soft);
+    opacity: 0.7;
+  }
+  
+  .guide-example-text {
+    color: var(--ink);
+  }
+  
+  .guide-example-badge {
+    font-size: 10px;
+    padding: 4px 10px;
+    letter-spacing: 0.1em;
+    font-family: var(--serif-kr);
+    font-weight: 500;
+  }
+  
+  .badge-most {
+    background: var(--accent);
+    color: white;
+  }
+  
+  .badge-least {
+    background: var(--ink-soft);
+    color: white;
+  }
+  
+  .guide-tip {
+    background: rgba(196, 167, 125, 0.08);
+    border-left: 3px solid var(--accent);
+    padding: 20px 24px;
+    margin-bottom: 40px;
+    font-family: var(--serif-kr);
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--ink);
+  }
+  
+  .guide-tip strong {
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  
+  .guide-cta {
+    text-align: center;
+  }
+  
+  .guide-cta-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-soft);
+    letter-spacing: 0.15em;
+    margin-bottom: 20px;
+  }
+  
+  /* ===== iOS 사진첩 저장 모달 ===== */
+  .ios-save-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(43, 38, 32, 0.88);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+    overflow-y: auto;
+  }
+  
+  .ios-save-content {
+    background: var(--bg);
+    max-width: 600px;
+    width: 100%;
+    padding: 40px 32px;
+    position: relative;
+    max-height: 92vh;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  
+  .ios-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  
+  .ios-close:hover { color: var(--accent); }
+  
+  .ios-label {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.25em;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  
+  .ios-title {
+    font-family: var(--serif-kr);
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  
+  .ios-desc {
+    font-family: var(--serif-kr);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  .ios-desc strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  
+  .ios-image-wrap {
+    border: 1px solid var(--line);
+    background: white;
+    padding: 4px;
+    margin-bottom: 20px;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+  
+  .ios-save-image {
+    width: 100%;
+    display: block;
+    -webkit-touch-callout: default !important;
+    -webkit-user-select: default !important;
+    user-select: default !important;
+  }
+  
+  .ios-hint {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    padding: 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== 헤더 ===== -->
+  <header class="header" id="header" style="display:none;">
+    <div>
+      <div class="brand">ELLY<span class="amp">&</span>ARTHUR</div>
+      <div class="brand-sub">DISC ASSESSMENT · 2026</div>
+    </div>
+    <div class="progress-wrap" id="progressWrap" style="display:none;">
+      <div class="progress-text">
+        <span class="current" id="currentQ">1</span>
+        <span class="total">/ 40</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+  </header>
+
+  <!-- ===== 시작 화면 ===== -->
+  <section class="screen active" id="screen-intro">
+    <div class="intro">
+      <div class="intro-label">— RECRUITMENT ASSESSMENT —</div>
+      <h1 class="intro-title">Know Yourself</h1>
+      <div class="intro-title-kr">성향 검사</div>
+      <div class="intro-divider"></div>
+      <p class="intro-desc">
+        엘리아더헤어 입사 지원자를 위한 성향 분석 검사입니다.<br>
+        정답은 없으며, 솔직하고 직관적으로 응답해주세요.<br>
+        결과는 면접관에게 공유되며, 지원자의 강점을 발견하는 데 활용됩니다.
+      </p>
+      
+      <div class="intro-meta">
+        <div class="meta-item">
+          <div class="meta-label">QUESTIONS</div>
+          <div class="meta-value">40<span class="unit">문항</span></div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">DURATION</div>
+          <div class="meta-value">15<span class="unit">분</span></div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">FORMAT</div>
+          <div class="meta-value">강제선택형</div>
+        </div>
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">— APPLICANT INFO —</label>
+        <div class="input-row">
+          <input type="text" class="input-field" id="applicantName" placeholder="성함">
+          <select class="input-field" id="applicantPosition" style="cursor:pointer;">
+            <option value="">지원 포지션</option>
+            <option value="designer">헤어 디자이너</option>
+            <option value="staff">헤어 스탭 / 인턴</option>
+          </select>
+        </div>
+      </div>
+      
+      <button class="btn-primary" id="startBtn" disabled>
+        <span>다음으로 →</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===== 응시 안내 화면 ===== -->
+  <section class="screen" id="screen-guide">
+    <div class="guide">
+      <div class="guide-label">— HOW TO RESPOND —</div>
+      <h1 class="guide-title">응답 방법 안내</h1>
+      <div class="guide-title-kr">검사 시작 전 꼭 읽어주세요</div>
+      <div class="guide-divider"></div>
+      
+      <p class="guide-intro">
+        각 문항마다 <strong>4개의 문장</strong>이 나옵니다.<br>
+        그 중 <strong>나와 가장 가까운 것</strong> 하나와,<br>
+        <strong>나와 가장 먼 것</strong> 하나를 각각 선택해주세요.
+      </p>
+      
+      <div class="guide-steps">
+        <div class="guide-steps-title">— STEP BY STEP —</div>
+        
+        <div class="guide-step">
+          <div class="guide-step-num">01</div>
+          <div class="guide-step-body">
+            <h4>문장 4개를 모두 읽어보세요</h4>
+            <p>어떤 문장이 내 성향에 <strong>가장 가까운지</strong>, 어떤 문장이 <strong>가장 먼지</strong> 천천히 생각해보세요.</p>
+          </div>
+        </div>
+        
+        <div class="guide-step">
+          <div class="guide-step-num">02</div>
+          <div class="guide-step-body">
+            <h4>"가까운 것" 버튼 하나를 탭하세요</h4>
+            <p>내 성향과 <strong>가장 닮은 문장</strong> 옆의 "가까운 것" 버튼을 눌러주세요. 1개만 선택 가능합니다.</p>
+          </div>
+        </div>
+        
+        <div class="guide-step">
+          <div class="guide-step-num">03</div>
+          <div class="guide-step-body">
+            <h4>"먼 것" 버튼 하나를 탭하세요</h4>
+            <p>내 성향과 <strong>가장 다른 문장</strong> 옆의 "먼 것" 버튼을 눌러주세요. 1개만 선택 가능합니다.</p>
+            
+            <div class="guide-example">
+              <div class="guide-example-label">— 예시 —</div>
+              <div class="guide-example-q">나는 새로운 환경에서</div>
+              <div class="guide-example-row picked-most">
+                <span class="guide-example-text">빠르게 주도권을 잡는다</span>
+                <span class="guide-example-badge badge-most">가까운 것</span>
+              </div>
+              <div class="guide-example-row">
+                <span class="guide-example-text">사람들과 즉시 친해진다</span>
+              </div>
+              <div class="guide-example-row">
+                <span class="guide-example-text">천천히 적응하며 관찰한다</span>
+              </div>
+              <div class="guide-example-row picked-least">
+                <span class="guide-example-text">규칙과 기준부터 파악한다</span>
+                <span class="guide-example-badge badge-least">먼 것</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="guide-step">
+          <div class="guide-step-num">04</div>
+          <div class="guide-step-body">
+            <h4>"다음 →" 버튼을 탭하세요</h4>
+            <p>두 개 모두 선택하면 다음 버튼이 활성화됩니다. <strong>총 40문항</strong>, 약 <strong>15분</strong> 소요됩니다.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="guide-tip">
+        <strong>💡 솔직하게 답해주세요</strong><br>
+        정답은 없습니다. 너무 오래 고민하지 말고 <strong>직관적으로 드는 느낌</strong>대로 선택하시는 것이 가장 정확한 결과를 만듭니다. 멋있게 보이려 하기보다, 있는 그대로의 나를 선택해주세요.
+      </div>
+      
+      <div class="guide-cta">
+        <div class="guide-cta-label">— 준비되셨다면 시작해주세요 —</div>
+        <button class="btn-primary" id="guideStartBtn">
+          <span>검사 시작하기</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 문항 화면 ===== -->
+  <section class="screen" id="screen-question">
+    <div class="question-screen">
+      <div class="question-number" id="questionLabel">QUESTION 01</div>
+      
+      <div class="question-card" id="questionCard">
+        <div class="shimmer"></div>
+        <div class="question-quote">— THE QUESTION —</div>
+        <h2 class="question-title" id="questionTitle"></h2>
+      </div>
+      
+      <p class="question-hint">
+        아래 4개 중 <span class="hint-highlight">나와 가장 가까운 것</span> 하나와, 
+        <span class="hint-highlight">나와 가장 먼 것</span> 하나를 각각 선택해주세요.
+      </p>
+      
+      <div class="choices" id="choicesContainer"></div>
+      
+      <div class="nav-bar">
+        <button class="btn-secondary" id="prevBtn">← 이전</button>
+        <div class="status-text" id="statusText">가까운 것 · 먼 것을 각각 선택해주세요</div>
+        <div class="next-wrap">
+          <button class="btn-primary" id="nextBtn" disabled>
+            <span>다음 →</span>
+          </button>
+          <div class="next-hint" id="nextHint"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 면접관 코드 게이트 ===== -->
+  <section class="screen" id="screen-gate">
+    <div class="gate">
+      <div class="gate-icon">✓</div>
+      <div class="gate-label">— ASSESSMENT COMPLETED —</div>
+      <h1 class="gate-title">작성 완료되었습니다</h1>
+      <p class="gate-msg">면접 담당자에게 디바이스를 넘겨 확인해주세요</p>
+      <p class="gate-sub">Please hand the device to the interviewer to review your results.</p>
+      <div class="gate-divider"></div>
+      
+      <div class="code-section">
+        <div class="code-section-label">— INTERVIEWER ACCESS CODE —</div>
+        <div class="code-display" id="codeDisplay">
+          <div class="code-box" data-pos="0"></div>
+          <div class="code-box" data-pos="1"></div>
+          <div class="code-box" data-pos="2"></div>
+          <div class="code-box" data-pos="3"></div>
+        </div>
+        <div class="keypad" id="keypad">
+          <button class="key" data-key="1">1</button>
+          <button class="key" data-key="2">2</button>
+          <button class="key" data-key="3">3</button>
+          <button class="key" data-key="4">4</button>
+          <button class="key" data-key="5">5</button>
+          <button class="key" data-key="6">6</button>
+          <button class="key" data-key="7">7</button>
+          <button class="key" data-key="8">8</button>
+          <button class="key" data-key="9">9</button>
+          <button class="key clear" data-key="clear">지움</button>
+          <button class="key" data-key="0">0</button>
+          <button class="key clear" data-key="back">←</button>
+        </div>
+        <div class="gate-error" id="gateError"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 저장 중 오버레이 ===== -->
+  <div class="saving-overlay" id="savingOverlay">
+    <div class="saving-content">
+      <div class="saving-text">SAVING<span class="saving-dots"></span></div>
+    </div>
+  </div>
+
+  <!-- ===== 결과 화면 ===== -->
+  <section class="screen" id="screen-result">
+    <div class="result-screen">
+      <div class="result-header">
+        <div class="result-label">— ASSESSMENT RESULT —</div>
+        <div class="result-name" id="resultName">—</div>
+        <div class="result-meta" id="resultMeta">—</div>
+      </div>
+      
+      <div class="type-showcase">
+        <div class="primary-type">
+          <div class="type-tag">— PRIMARY TYPE —</div>
+          <div class="type-letter" id="primaryLetter">D</div>
+          <div class="type-name" id="primaryName">주도형</div>
+          <div class="type-desc" id="primaryDesc"></div>
+        </div>
+        
+        <div class="score-chart">
+          <div class="chart-title">— DISC PROFILE —</div>
+          <div id="scoreRows"></div>
+        </div>
+      </div>
+      
+      <!-- 적합도 -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-number">I.</div>
+          <div class="section-title">직무 적합도 분석</div>
+          <div class="section-line"></div>
+        </div>
+        <div class="fit-card">
+          <div class="fit-score">
+            <div class="fit-ring">
+              <svg width="180" height="180" viewBox="0 0 180 180">
+                <circle class="bg" cx="90" cy="90" r="82"/>
+                <circle class="fg" id="fitRingFg" cx="90" cy="90" r="82" 
+                        stroke-dasharray="515" stroke-dashoffset="515"/>
+              </svg>
+              <div class="fit-percent"><span id="fitPercent">0</span><span class="pct">%</span></div>
+            </div>
+            <div class="fit-grade" id="fitGrade">—</div>
+          </div>
+          <div class="fit-desc">
+            <h4 id="fitTitle">—</h4>
+            <p id="fitDesc">—</p>
+            <div class="fit-breakdown" id="fitBreakdown"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 일관성 + 문화핏 -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-number">II.</div>
+          <div class="section-title">신뢰도 & 문화 적합도</div>
+          <div class="section-line"></div>
+        </div>
+        <div class="meta-grid">
+          <div class="meta-card" id="consistencyCard">
+            <div class="meta-card-label">— CONSISTENCY —</div>
+            <div class="meta-card-value"><span id="consistencyValue">0</span>%</div>
+            <div class="meta-card-grade" id="consistencyGrade">—</div>
+            <div class="meta-card-desc" id="consistencyDesc">—</div>
+          </div>
+          <div class="meta-card" id="cultureCard">
+            <div class="meta-card-label">— CULTURE FIT —</div>
+            <div class="meta-card-value"><span id="cultureValue">0</span>%</div>
+            <div class="meta-card-grade" id="cultureGrade">—</div>
+            <div class="meta-card-desc" id="cultureDesc">—</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 면접 추천 질문 -->
+      <div class="section">
+        <div class="section-header">
+          <div class="section-number">III.</div>
+          <div class="section-title">면접관용 맞춤 질문</div>
+          <div class="section-line"></div>
+        </div>
+        <div class="interview-list" id="interviewList"></div>
+      </div>
+      
+      <div class="action-bar">
+        <div class="save-menu">
+          <button class="btn-secondary" id="saveMenuBtn">이미지 저장 ▾</button>
+          <div class="save-options" id="saveOptions">
+            <button class="save-option" onclick="saveAsImage(true)">
+              <span class="save-option-icon">FULL</span>전체 저장 <small style="display:block;font-size:11px;color:var(--ink-soft);margin-top:4px;letter-spacing:0.05em;">성향 + 면접 질문 포함</small>
+            </button>
+            <button class="save-option" onclick="saveAsImage(false)">
+              <span class="save-option-icon">BASIC</span>요약 저장 <small style="display:block;font-size:11px;color:var(--ink-soft);margin-top:4px;letter-spacing:0.05em;">성향 결과만 (질문지 제외)</small>
+            </button>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="restart()">
+          <span>새 검사 시작</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// ===============================
+// DISC 40문항 (강제선택형)
+// 각 문항: 4개 선택지 (D, I, S, C 각 1개씩)
+// 미용실 현장 상황 + 일반 DISC 혼합
+// ===============================
+
+const QUESTIONS = [
+  // --- 섹션 1: 일반 성향 (1-10) ---
+  { t:"나는 새로운 환경에서", o:[
+    {txt:"빠르게 주도권을 잡는다", type:"D"},
+    {txt:"사람들과 즉시 친해진다", type:"I"},
+    {txt:"천천히 적응하며 관찰한다", type:"S"},
+    {txt:"규칙과 기준부터 파악한다", type:"C"}]},
+  { t:"의사결정을 할 때 나는", o:[
+    {txt:"빠르고 과감하게 결정한다", type:"D"},
+    {txt:"직감과 느낌을 믿는다", type:"I"},
+    {txt:"주변 의견을 충분히 듣는다", type:"S"},
+    {txt:"데이터와 근거를 분석한다", type:"C"}]},
+  { t:"스트레스 받을 때 나는", o:[
+    {txt:"더 강하게 밀어붙인다", type:"D"},
+    {txt:"사람들과 얘기하며 푼다", type:"I"},
+    {txt:"조용히 혼자 시간을 갖는다", type:"S"},
+    {txt:"원인을 분석하고 정리한다", type:"C"}]},
+  { t:"팀에서 내 역할은", o:[
+    {txt:"방향을 제시하는 리더", type:"D"},
+    {txt:"분위기를 띄우는 메이커", type:"I"},
+    {txt:"뒤에서 돕는 서포터", type:"S"},
+    {txt:"품질을 지키는 검토자", type:"C"}]},
+  { t:"나의 장점을 고른다면", o:[
+    {txt:"추진력과 결단력", type:"D"},
+    {txt:"친화력과 긍정성", type:"I"},
+    {txt:"성실함과 꾸준함", type:"S"},
+    {txt:"정확성과 꼼꼼함", type:"C"}]},
+  { t:"나는 일을 할 때", o:[
+    {txt:"결과를 빨리 내는 게 중요하다", type:"D"},
+    {txt:"즐겁게 하는 게 중요하다", type:"I"},
+    {txt:"안정적으로 하는 게 중요하다", type:"S"},
+    {txt:"완벽하게 하는 게 중요하다", type:"C"}]},
+  { t:"갈등 상황에서 나는", o:[
+    {txt:"정면으로 부딪쳐 해결한다", type:"D"},
+    {txt:"분위기로 풀어낸다", type:"I"},
+    {txt:"가능한 한 피한다", type:"S"},
+    {txt:"사실관계를 따진다", type:"C"}]},
+  { t:"새로운 기술을 배울 때 나는", o:[
+    {txt:"일단 바로 해본다", type:"D"},
+    {txt:"사람들과 함께 배우는 게 좋다", type:"I"},
+    {txt:"충분히 연습하고 숙달한다", type:"S"},
+    {txt:"원리부터 이해하려 한다", type:"C"}]},
+  { t:"나는 칭찬받을 때", o:[
+    {txt:"성과를 인정받는 게 기쁘다", type:"D"},
+    {txt:"사람들 앞에서 받는 게 좋다", type:"I"},
+    {txt:"진심 어린 한마디가 좋다", type:"S"},
+    {txt:"구체적인 피드백이 좋다", type:"C"}]},
+  { t:"나는 보통", o:[
+    {txt:"말보다 행동이 앞선다", type:"D"},
+    {txt:"말이 많고 표현이 풍부하다", type:"I"},
+    {txt:"조용히 듣는 편이다", type:"S"},
+    {txt:"신중하게 말하는 편이다", type:"C"}]},
+
+  // --- 섹션 2: 미용실 현장 상황 (11-25) - 변별력 핵심 ---
+  { t:"진상 고객이 컴플레인을 걸 때 나는", o:[
+    {txt:"원인을 명확히 따져 해결책을 제시한다", type:"D"},
+    {txt:"일단 사과하고 분위기부터 풀어낸다", type:"I"},
+    {txt:"고객 말을 끝까지 듣고 공감한다", type:"S"},
+    {txt:"매뉴얼대로 단계별로 처리한다", type:"C"}]},
+  { t:"인턴 후배가 실수했을 때", o:[
+    {txt:"즉시 지적하고 다시 가르친다", type:"D"},
+    {txt:"기분 상하지 않게 돌려 말한다", type:"I"},
+    {txt:"같이 해결하고 마음을 다독인다", type:"S"},
+    {txt:"왜 그렇게 됐는지 원인을 분석한다", type:"C"}]},
+  { t:"처음 만난 고객과 나는", o:[
+    {txt:"바로 원하는 스타일을 확인한다", type:"D"},
+    {txt:"가벼운 대화로 분위기를 만든다", type:"I"},
+    {txt:"편안하게 들어주며 신뢰를 쌓는다", type:"S"},
+    {txt:"상담지에 꼼꼼히 기록한다", type:"C"}]},
+  { t:"매장이 바쁜 피크타임에 나는", o:[
+    {txt:"전체 흐름을 잡고 지시를 내린다", type:"D"},
+    {txt:"밝은 텐션으로 분위기를 끌어올린다", type:"I"},
+    {txt:"묵묵히 내 자리를 지킨다", type:"S"},
+    {txt:"우선순위를 정리해 체계적으로 한다", type:"C"}]},
+  { t:"고객이 '알아서 해주세요'라고 할 때", o:[
+    {txt:"자신있게 추천안을 제시한다", type:"D"},
+    {txt:"대화하며 취향을 끌어낸다", type:"I"},
+    {txt:"여러 옵션을 친절히 설명한다", type:"S"},
+    {txt:"얼굴형·모질 분석부터 한다", type:"C"}]},
+  { t:"시술 중 예상 못한 문제가 생겼다", o:[
+    {txt:"즉시 판단해 다음 조치를 취한다", type:"D"},
+    {txt:"고객에게 편하게 상황을 설명한다", type:"I"},
+    {txt:"선배·원장님께 도움을 요청한다", type:"S"},
+    {txt:"약제 반응을 체크하고 기록한다", type:"C"}]},
+  { t:"매장 내부 회의에서 나는", o:[
+    {txt:"의견을 주도적으로 낸다", type:"D"},
+    {txt:"아이디어를 자유롭게 던진다", type:"I"},
+    {txt:"다른 사람 의견을 경청한다", type:"S"},
+    {txt:"데이터·사례로 검토한다", type:"C"}]},
+  { t:"동료가 내 방식을 비판할 때", o:[
+    {txt:"근거를 들어 반박한다", type:"D"},
+    {txt:"웃으며 받아넘긴다", type:"I"},
+    {txt:"일단 수용하고 고민해본다", type:"S"},
+    {txt:"사실 여부를 조목조목 확인한다", type:"C"}]},
+  { t:"신메뉴·신기술을 처음 배울 때", o:[
+    {txt:"빨리 실전에 적용하고 싶다", type:"D"},
+    {txt:"동료들과 함께 연습하고 싶다", type:"I"},
+    {txt:"충분히 익숙해진 뒤 고객에게 적용한다", type:"S"},
+    {txt:"이론·원리를 먼저 공부한다", type:"C"}]},
+  { t:"고객 재방문율을 높이려면", o:[
+    {txt:"강하게 어필해서 각인시킨다", type:"D"},
+    {txt:"관계를 친근하게 이어간다", type:"I"},
+    {txt:"꾸준히 진심으로 케어한다", type:"S"},
+    {txt:"데이터로 관리하고 주기를 맞춘다", type:"C"}]},
+  { t:"매장 매출이 떨어졌을 때 나는", o:[
+    {txt:"즉시 새로운 전략을 시도한다", type:"D"},
+    {txt:"SNS·고객 접점을 활성화한다", type:"I"},
+    {txt:"기존 고객 관리에 집중한다", type:"S"},
+    {txt:"원인을 숫자로 분석한다", type:"C"}]},
+  { t:"원장님이 새 지시를 내렸을 때", o:[
+    {txt:"목적과 결과를 먼저 확인한다", type:"D"},
+    {txt:"일단 긍정적으로 받아들인다", type:"I"},
+    {txt:"묵묵히 따르며 배운다", type:"S"},
+    {txt:"절차·기준을 자세히 묻는다", type:"C"}]},
+  { t:"고객이 내 실수를 지적했을 때", o:[
+    {txt:"즉시 인정하고 빠르게 해결한다", type:"D"},
+    {txt:"사과와 함께 분위기를 풀어낸다", type:"I"},
+    {txt:"진심으로 사과하고 다시 해드린다", type:"S"},
+    {txt:"무엇이 잘못됐는지 정확히 파악한다", type:"C"}]},
+  { t:"팀 내 의견이 갈릴 때 나는", o:[
+    {txt:"내 의견을 강하게 주장한다", type:"D"},
+    {txt:"중재하며 분위기를 만든다", type:"I"},
+    {txt:"다수 의견을 따른다", type:"S"},
+    {txt:"각 의견의 장단점을 정리한다", type:"C"}]},
+  { t:"나는 교육에 참여할 때", o:[
+    {txt:"실전에 바로 써먹을 수 있는 게 좋다", type:"D"},
+    {txt:"함께하는 사람들과의 소통이 좋다", type:"I"},
+    {txt:"반복 연습으로 몸에 익히는 게 좋다", type:"S"},
+    {txt:"체계적인 이론과 자료가 좋다", type:"C"}]},
+
+  // --- 섹션 3: 가치관·동기 (26-32) ---
+  { t:"내가 일하는 가장 큰 이유는", o:[
+    {txt:"성과와 성장", type:"D"},
+    {txt:"즐거움과 인정", type:"I"},
+    {txt:"안정과 관계", type:"S"},
+    {txt:"전문성과 완성도", type:"C"}]},
+  { t:"나에게 좋은 리더란", o:[
+    {txt:"방향을 명확히 제시하는 사람", type:"D"},
+    {txt:"함께 즐겁게 이끄는 사람", type:"I"},
+    {txt:"믿고 기다려주는 사람", type:"S"},
+    {txt:"공정하고 기준이 분명한 사람", type:"C"}]},
+  { t:"나는 5년 후", o:[
+    {txt:"독립·창업을 하고 싶다", type:"D"},
+    {txt:"브랜드의 얼굴이 되고 싶다", type:"I"},
+    {txt:"매장에서 오래 인정받고 싶다", type:"S"},
+    {txt:"기술 전문가가 되고 싶다", type:"C"}]},
+  { t:"나에게 맞는 매장 분위기는", o:[
+    {txt:"도전적이고 빠르게 성장하는 곳", type:"D"},
+    {txt:"활기차고 사람 좋은 곳", type:"I"},
+    {txt:"편안하고 오래 다닐 수 있는 곳", type:"S"},
+    {txt:"체계적이고 전문적인 곳", type:"C"}]},
+  { t:"내가 힘들어하는 업무는", o:[
+    {txt:"세세하고 반복적인 작업", type:"D"},
+    {txt:"혼자 오래 하는 작업", type:"I"},
+    {txt:"급하게 바뀌는 일정", type:"S"},
+    {txt:"기준이 애매한 일", type:"C"}]},
+  { t:"나는 동료에게 이런 사람이고 싶다", o:[
+    {txt:"믿고 맡길 수 있는 사람", type:"D"},
+    {txt:"함께 있으면 즐거운 사람", type:"I"},
+    {txt:"늘 곁에 있어주는 사람", type:"S"},
+    {txt:"정확하고 실력있는 사람", type:"C"}]},
+  { t:"내가 일할 때 가장 뿌듯한 순간은", o:[
+    {txt:"목표를 달성했을 때", type:"D"},
+    {txt:"고객이 기뻐할 때", type:"I"},
+    {txt:"동료와 함께 해냈을 때", type:"S"},
+    {txt:"완벽하게 마무리됐을 때", type:"C"}]},
+
+  // --- 섹션 4: 일관성 체크 페어 (33-40) - 비슷한 내용 재질문 ---
+  { t:"빠르게 변하는 환경에서 나는", o:[
+    {txt:"변화를 주도하며 적응한다", type:"D"},
+    {txt:"변화 속에서 새 기회를 찾는다", type:"I"},
+    {txt:"안정이 깨지는 게 부담스럽다", type:"S"},
+    {txt:"변화의 근거를 확인하고 싶다", type:"C"}]},
+  { t:"나에게 일의 완성도란", o:[
+    {txt:"빠른 속도가 곧 완성도다", type:"D"},
+    {txt:"고객 만족이 완성도다", type:"I"},
+    {txt:"꾸준함이 완성도다", type:"S"},
+    {txt:"디테일이 완성도다", type:"C"}]},
+  { t:"실패를 경험했을 때 나는", o:[
+    {txt:"바로 다음 시도를 준비한다", type:"D"},
+    {txt:"사람들과 나누며 털어낸다", type:"I"},
+    {txt:"받아들이는 데 시간이 걸린다", type:"S"},
+    {txt:"원인을 철저히 분석한다", type:"C"}]},
+  { t:"나의 대화 스타일은", o:[
+    {txt:"짧고 명확하게", type:"D"},
+    {txt:"밝고 풍부하게", type:"I"},
+    {txt:"차분하고 따뜻하게", type:"S"},
+    {txt:"논리적이고 정확하게", type:"C"}]},
+  { t:"업무 피드백을 받을 때 나는", o:[
+    {txt:"요점만 듣고 바로 개선한다", type:"D"},
+    {txt:"긍정적인 말과 함께 듣고 싶다", type:"I"},
+    {txt:"너무 직설적이면 상처받는다", type:"S"},
+    {txt:"구체적인 예시가 있어야 한다", type:"C"}]},
+  { t:"나에게 휴식이란", o:[
+    {txt:"다음을 위한 재충전", type:"D"},
+    {txt:"사람들과 어울리는 시간", type:"I"},
+    {txt:"혼자 조용히 쉬는 시간", type:"S"},
+    {txt:"계획적으로 정비하는 시간", type:"C"}]},
+  { t:"매장에서 내가 가장 잘하는 건", o:[
+    {txt:"어려운 상황을 돌파하는 것", type:"D"},
+    {txt:"고객과 동료의 기분을 좋게 만드는 것", type:"I"},
+    {txt:"묵묵히 내 일을 끝까지 해내는 것", type:"S"},
+    {txt:"실수 없이 꼼꼼하게 처리하는 것", type:"C"}]},
+  { t:"나는 장기적으로 어떤 사람이 되고 싶은가", o:[
+    {txt:"업계에서 인정받는 전문가", type:"D"},
+    {txt:"사람들이 좋아하는 브랜드", type:"I"},
+    {txt:"오래 함께할 수 있는 파트너", type:"S"},
+    {txt:"탁월한 기술을 가진 장인", type:"C"}]}
+];
+
+// 일관성 체크용 페어 (비슷한 성향 측정)
+const CONSISTENCY_PAIRS = [
+  [0, 32],   // 새로운 환경 ↔ 빠르게 변하는 환경
+  [2, 36],   // 스트레스 ↔ 휴식
+  [5, 33],   // 일할 때 ↔ 완성도
+  [9, 35],   // 나는 보통 ↔ 대화 스타일
+  [6, 34],   // 갈등 ↔ 실패
+  [4, 37]    // 장점 ↔ 잘하는 것
+];
+
+// 유형 정보
+const TYPE_INFO = {
+  D: { name:"주도형 (Dominance)", 
+       desc:"목표 지향적이고 결단력이 강합니다. 빠른 의사결정과 추진력으로 성과를 만들어내며, 도전적인 환경에서 진가를 발휘합니다. 자기 주도적이며 리더십 포지션에 잘 맞습니다.",
+       strengths: ["빠른 실행력", "강한 목표 의식"],
+       cautions: ["세심한 배려가 부족할 수 있음", "동료와의 충돌 가능성"] },
+  I: { name:"사교형 (Influence)", 
+       desc:"사람들과의 관계를 통해 에너지를 얻고, 밝고 긍정적인 분위기를 만듭니다. 뛰어난 소통 능력으로 고객과 빠르게 라포를 형성하며, 매장의 분위기 메이커 역할을 자연스럽게 수행합니다.",
+       strengths: ["뛰어난 친화력", "고객 호감도가 높음"],
+       cautions: ["꼼꼼한 마무리가 약할 수 있음", "감정 기복 가능성"] },
+  S: { name:"안정형 (Steadiness)", 
+       desc:"꾸준하고 성실하며, 팀에 안정감을 주는 사람입니다. 변화보다 일관성을, 경쟁보다 협력을 선호합니다. 고객·동료와 장기적인 신뢰 관계를 만드는 데 탁월하며, 팀의 중심축 역할을 합니다.",
+       strengths: ["높은 책임감과 인내심", "장기 근속 가능성"],
+       cautions: ["변화에 느리게 적응함", "자기 의견 표현이 소극적"] },
+  C: { name:"신중형 (Conscientiousness)", 
+       desc:"정확하고 꼼꼼하며, 높은 품질 기준을 가집니다. 기술적 완성도와 체계를 중시하며, 복잡한 시술이나 정교한 작업에서 강점을 보입니다. 매뉴얼과 원칙을 존중하는 전문가형입니다.",
+       strengths: ["정밀한 기술 구현", "높은 완성도"],
+       cautions: ["속도가 느릴 수 있음", "변화를 부담스러워함"] }
+};
+
+// 포지션별 이상형 (디자이너 vs 스탭)
+const IDEAL_PROFILES = {
+  designer: {
+    D: 30, I: 35, S: 15, C: 20,
+    title: "헤어 디자이너 이상형",
+    desc: "고객 응대와 매출을 함께 만들어야 하는 포지션입니다. 사교성(I)과 주도성(D)이 높고, 기술적 정확성(C)이 뒷받침되는 조합이 가장 이상적입니다."
+  },
+  staff: {
+    D: 15, I: 20, S: 35, C: 30,
+    title: "헤어 스탭 / 인턴 이상형",
+    desc: "배우는 자세와 팀워크, 꼼꼼한 보조 업무가 핵심입니다. 안정형(S)과 신중형(C)이 높은 조합이 가장 적합하며, 성실함과 인내심이 중요합니다."
+  }
+};
+
+// 문화핏 키워드 (엘리아더 핵심가치 반영 문항)
+const CULTURE_FIT_ITEMS = [
+  { q:"나는 동료와 함께 오래 성장하는 것이 중요하다", weight:"S+I" },
+  { q:"나는 즐거운 분위기에서 일할 때 힘이 난다", weight:"I" },
+  { q:"나는 꾸준히 배우고 싶다", weight:"S+C" }
+];
+
+// ===============================
+// 상태 관리
+// ===============================
+
+let currentIdx = 0;
+let answers = []; // [{most: type, least: type}, ...]
+let applicant = { name:"", position:"" };
+
+// DOM
+const $ = (id) => document.getElementById(id);
+
+// ===============================
+// 이벤트 핸들러
+// ===============================
+
+$('applicantName').addEventListener('input', checkStartReady);
+$('applicantPosition').addEventListener('change', checkStartReady);
+
+function checkStartReady() {
+  const ready = $('applicantName').value.trim() && $('applicantPosition').value;
+  $('startBtn').disabled = !ready;
+}
+
+$('startBtn').addEventListener('click', showGuide);
+$('prevBtn').addEventListener('click', prevQuestion);
+$('nextBtn').addEventListener('click', nextQuestion);
+
+function showGuide() {
+  applicant.name = $('applicantName').value.trim();
+  applicant.position = $('applicantPosition').value;
+  
+  $('screen-intro').classList.remove('active');
+  $('screen-guide').classList.add('active');
+  
+  // 페이지 상단으로 스크롤
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 안내 화면에서 "검사 시작하기" 버튼
+document.addEventListener('DOMContentLoaded', () => {
+  const guideBtn = document.getElementById('guideStartBtn');
+  if (guideBtn) {
+    guideBtn.addEventListener('click', startAssessment);
+  }
+});
+
+// DOMContentLoaded 이전에도 작동하도록 보조 바인딩
+setTimeout(() => {
+  const guideBtn = document.getElementById('guideStartBtn');
+  if (guideBtn && !guideBtn._bound) {
+    guideBtn.addEventListener('click', startAssessment);
+    guideBtn._bound = true;
+  }
+}, 100);
+
+function startAssessment() {
+  answers = new Array(QUESTIONS.length).fill(null).map(() => ({ most:null, least:null }));
+  currentIdx = 0;
+  
+  $('screen-guide').classList.remove('active');
+  $('screen-intro').classList.remove('active');
+  $('screen-question').classList.add('active');
+  $('header').style.display = 'flex';
+  $('progressWrap').style.display = 'flex';
+  
+  // 페이지 상단으로 스크롤
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  renderQuestion();
+  // 첫 문항도 반짝임 효과
+  setTimeout(flashQuestionCard, 500);
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentIdx];
+  $('questionLabel').textContent = `QUESTION ${String(currentIdx + 1).padStart(2, '0')}`;
+  $('questionTitle').textContent = q.t;
+  $('currentQ').textContent = currentIdx + 1;
+  $('progressFill').style.width = `${((currentIdx + 1) / QUESTIONS.length) * 100}%`;
+  
+  const container = $('choicesContainer');
+  container.innerHTML = '';
+  
+  const answer = answers[currentIdx];
+  
+  q.o.forEach((choice, idx) => {
+    const el = document.createElement('div');
+    el.className = 'choice';
+    if (answer.most === idx) el.classList.add('picked-most');
+    else if (answer.least === idx) el.classList.add('picked-least');
+    
+    el.innerHTML = `
+      <div class="choice-text">${choice.txt}</div>
+      <div class="choice-buttons">
+        <button class="pick-btn most ${answer.most === idx ? 'selected' : ''}" data-idx="${idx}" data-pick="most">가까운 것</button>
+        <button class="pick-btn least ${answer.least === idx ? 'selected' : ''}" data-idx="${idx}" data-pick="least">먼 것</button>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+  
+  // 버튼 이벤트
+  container.querySelectorAll('.pick-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.idx);
+      const pick = btn.dataset.pick;
+      
+      if (pick === 'most') {
+        // most로 선택. 기존 least와 겹치면 least 초기화
+        answers[currentIdx].most = (answers[currentIdx].most === idx) ? null : idx;
+        if (answers[currentIdx].least === idx) answers[currentIdx].least = null;
+      } else {
+        answers[currentIdx].least = (answers[currentIdx].least === idx) ? null : idx;
+        if (answers[currentIdx].most === idx) answers[currentIdx].most = null;
+      }
+      renderQuestion();
+    });
+  });
+  
+  // 상태 업데이트
+  const complete = answer.most !== null && answer.least !== null;
+  $('nextBtn').disabled = !complete;
+  $('statusText').textContent = complete 
+    ? (currentIdx === QUESTIONS.length - 1 ? '모든 응답 완료. 결과를 확인하세요' : '다음 문항으로 진행하세요')
+    : '가까운 것 · 먼 것을 각각 선택해주세요';
+  $('statusText').className = complete ? 'status-text ready' : 'status-text';
+  
+  $('prevBtn').style.visibility = currentIdx === 0 ? 'hidden' : 'visible';
+  $('nextBtn').querySelector('span').textContent = currentIdx === QUESTIONS.length - 1 ? '결과 보기 →' : '다음 →';
+  
+  // 다음 문항 번호 힌트
+  const nextHint = $('nextHint');
+  if (currentIdx === QUESTIONS.length - 1) {
+    nextHint.innerHTML = '마지막 문항입니다';
+    nextHint.className = complete ? 'next-hint active' : 'next-hint';
+  } else {
+    const nextNum = currentIdx + 2; // 다음 문항 번호 (1-indexed)
+    const remaining = QUESTIONS.length - currentIdx - 1;
+    nextHint.innerHTML = `다음 <span class="num">${String(nextNum).padStart(2, '0')}</span>번 · 남은 문항 ${remaining}`;
+    nextHint.className = complete ? 'next-hint active' : 'next-hint';
+  }
+}
+
+// 문항 카드 반짝임 효과
+function flashQuestionCard() {
+  const card = $('questionCard');
+  if (!card) return;
+  // 이전 애니메이션 클래스 제거 후 재적용 (재실행 보장)
+  card.classList.remove('flash');
+  // 강제 리플로우로 애니메이션 재시작 가능
+  void card.offsetWidth;
+  card.classList.add('flash');
+  // 애니메이션 끝난 후 클래스 제거
+  setTimeout(() => card.classList.remove('flash'), 1300);
+}
+
+function prevQuestion() {
+  if (currentIdx > 0) { 
+    currentIdx--; 
+    renderQuestion(); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // 스크롤 완료 후 반짝임
+    setTimeout(flashQuestionCard, 450);
+  }
+}
+
+function nextQuestion() {
+  if (currentIdx < QUESTIONS.length - 1) {
+    currentIdx++;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // 스크롤 완료 후 반짝임
+    setTimeout(flashQuestionCard, 450);
+  } else {
+    showGate();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// ===============================
+// 면접관 코드 게이트
+// ===============================
+
+const INTERVIEWER_CODE = "7273";
+let enteredCode = "";
+
+function showGate() {
+  $('screen-question').classList.remove('active');
+  $('screen-gate').classList.add('active');
+  $('progressWrap').style.display = 'none';
+  enteredCode = "";
+  updateCodeDisplay();
+  $('gateError').textContent = '';
+}
+
+function updateCodeDisplay() {
+  const boxes = document.querySelectorAll('#codeDisplay .code-box');
+  boxes.forEach((box, i) => {
+    if (i < enteredCode.length) {
+      box.textContent = '●';
+      box.classList.add('filled');
+      box.classList.remove('error');
+    } else {
+      box.textContent = '';
+      box.classList.remove('filled');
+      box.classList.remove('error');
+    }
+  });
+}
+
+// 키패드 이벤트
+document.querySelectorAll('#keypad .key').forEach(key => {
+  key.addEventListener('click', () => {
+    const k = key.dataset.key;
+    if (k === 'clear') {
+      enteredCode = "";
+    } else if (k === 'back') {
+      enteredCode = enteredCode.slice(0, -1);
+    } else if (enteredCode.length < 4) {
+      enteredCode += k;
+    }
+    $('gateError').textContent = '';
+    updateCodeDisplay();
+    
+    // 4자리 입력 완료 시 자동 검증
+    if (enteredCode.length === 4) {
+      setTimeout(verifyCode, 300);
+    }
+  });
+});
+
+function verifyCode() {
+  if (enteredCode === INTERVIEWER_CODE) {
+    // 성공: 결과 화면으로
+    $('screen-gate').classList.remove('active');
+    showResult();
+  } else {
+    // 실패
+    const boxes = document.querySelectorAll('#codeDisplay .code-box');
+    boxes.forEach(b => b.classList.add('error'));
+    $('gateError').textContent = '코드가 일치하지 않습니다. 다시 시도해주세요.';
+    setTimeout(() => {
+      enteredCode = "";
+      updateCodeDisplay();
+    }, 800);
+  }
+}
+
+// ===============================
+// 결과 계산
+// ===============================
+
+function calculateResult() {
+  // 1. DISC 점수 계산 (Most: +1, Least: -1)
+  const raw = { D:0, I:0, S:0, C:0 };
+  answers.forEach((ans, qIdx) => {
+    if (ans.most !== null) raw[QUESTIONS[qIdx].o[ans.most].type]++;
+    if (ans.least !== null) raw[QUESTIONS[qIdx].o[ans.least].type]--;
+  });
+  
+  // 정규화: 가장 낮은 값을 0으로 이동 후 퍼센트
+  const min = Math.min(...Object.values(raw));
+  const shifted = { D:raw.D-min, I:raw.I-min, S:raw.S-min, C:raw.C-min };
+  const total = Object.values(shifted).reduce((a,b)=>a+b, 0) || 1;
+  const pct = { 
+    D: Math.round(shifted.D/total*100),
+    I: Math.round(shifted.I/total*100),
+    S: Math.round(shifted.S/total*100),
+    C: Math.round(shifted.C/total*100)
+  };
+  
+  // 2. 주요 유형
+  const primary = Object.keys(pct).reduce((a,b) => pct[a] > pct[b] ? a : b);
+  
+  // 3. 직무 적합도
+  const ideal = IDEAL_PROFILES[applicant.position];
+  let diff = 0;
+  ['D','I','S','C'].forEach(t => diff += Math.abs(pct[t] - ideal[t]));
+  const fit = Math.max(0, Math.round(100 - diff * 0.8));
+  
+  // 4. 일관성 체크 (Most 응답의 유형 일치도)
+  let consistent = 0;
+  CONSISTENCY_PAIRS.forEach(([a, b]) => {
+    const typeA = answers[a].most !== null ? QUESTIONS[a].o[answers[a].most].type : null;
+    const typeB = answers[b].most !== null ? QUESTIONS[b].o[answers[b].most].type : null;
+    if (typeA && typeB && typeA === typeB) consistent++;
+  });
+  const consistency = Math.round((consistent / CONSISTENCY_PAIRS.length) * 100);
+  
+  // 5. 문화핏 (S + I 가중치. 엘리아더는 "함께 성장 + 즐거운 문화" 강조)
+  // 포지션에 따라 살짝 다르게
+  let culture;
+  if (applicant.position === 'designer') {
+    culture = Math.round(pct.I * 1.1 + pct.S * 0.8 + pct.D * 0.5);
+  } else {
+    culture = Math.round(pct.S * 1.2 + pct.I * 0.8 + pct.C * 0.5);
+  }
+  culture = Math.min(100, culture);
+  
+  return { raw, pct, primary, fit, consistency, culture, ideal };
+}
+
+// ===============================
+// 결과 렌더링
+// ===============================
+
+function showResult() {
+  const r = calculateResult();
+  lastResult = r;  // 저장용으로 보관
+  
+  $('screen-question').classList.remove('active');
+  $('screen-result').classList.add('active');
+  $('progressWrap').style.display = 'none';
+  
+  // 이름
+  $('resultName').textContent = applicant.name;
+  $('resultMeta').textContent = 
+    `${applicant.position === 'designer' ? '헤어 디자이너' : '헤어 스탭 / 인턴'} 지원 · ${new Date().toLocaleDateString('ko-KR')}`;
+  
+  // 주요 유형
+  const info = TYPE_INFO[r.primary];
+  $('primaryLetter').textContent = r.primary;
+  $('primaryName').textContent = info.name;
+  $('primaryDesc').textContent = info.desc;
+  
+  // 점수 바
+  const scoreRows = $('scoreRows');
+  scoreRows.innerHTML = '';
+  const typeOrder = ['D','I','S','C'];
+  typeOrder.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'score-row';
+    row.innerHTML = `
+      <div class="score-header">
+        <div class="score-label">
+          <span class="score-letter">${t}</span>
+          <span class="score-type-name">${TYPE_INFO[t].name.split(' ')[0]}</span>
+        </div>
+        <span class="score-value">${r.pct[t]}</span>
+      </div>
+      <div class="score-bar">
+        <div class="score-fill" style="width: ${r.pct[t]}%; animation-delay: ${i*0.15}s;"></div>
+      </div>
+    `;
+    scoreRows.appendChild(row);
+  });
+  
+  // 적합도 링
+  setTimeout(() => {
+    const circumference = 515;
+    const offset = circumference - (r.fit / 100) * circumference;
+    $('fitRingFg').style.strokeDashoffset = offset;
+    animateNumber('fitPercent', 0, r.fit, 1500);
+    animateNumber('consistencyValue', 0, r.consistency, 1200);
+    animateNumber('cultureValue', 0, r.culture, 1400);
+  }, 400);
+  
+  // 적합도 등급
+  const fitGrade = r.fit >= 85 ? 'EXCELLENT MATCH' : r.fit >= 70 ? 'GOOD MATCH' : r.fit >= 55 ? 'FAIR MATCH' : 'LOW MATCH';
+  $('fitGrade').textContent = fitGrade;
+  $('fitTitle').textContent = r.ideal.title;
+  $('fitDesc').textContent = r.ideal.desc;
+  
+  // 적합도 상세
+  const breakdown = $('fitBreakdown');
+  breakdown.innerHTML = '';
+  const strengthsInfo = TYPE_INFO[r.primary];
+  strengthsInfo.strengths.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'fit-point';
+    div.innerHTML = `<strong>강점</strong><br>${s}`;
+    breakdown.appendChild(div);
+  });
+  strengthsInfo.cautions.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'fit-point';
+    div.innerHTML = `<strong>주의점</strong><br>${c}`;
+    breakdown.appendChild(div);
+  });
+  
+  // 일관성
+  const consistencyGrade = r.consistency >= 66 ? 'HIGH · 신뢰도 높음' : r.consistency >= 33 ? 'MEDIUM · 보통' : 'LOW · 면접 시 확인 필요';
+  const consistencyDesc = r.consistency >= 66 
+    ? '유사한 문항에서 일관된 응답 패턴을 보였습니다. 솔직하게 응답한 것으로 판단됩니다.'
+    : r.consistency >= 33
+    ? '일부 문항에서 응답 패턴이 엇갈렸습니다. 면접 시 자연스럽게 재확인해보세요.'
+    : '유사 문항에서 응답이 크게 엇갈렸습니다. 의도적 포장 가능성이 있어 면접 시 심층 검증을 권장합니다.';
+  $('consistencyGrade').textContent = consistencyGrade;
+  $('consistencyDesc').textContent = consistencyDesc;
+  if (r.consistency < 33) $('consistencyCard').classList.add('warning');
+  
+  // 문화핏
+  const cultureGrade = r.culture >= 75 ? 'STRONG · 엘리아더 문화와 높은 적합도' : r.culture >= 55 ? 'MODERATE · 적응 가능' : 'LOW · 문화 적응 검증 필요';
+  const cultureDesc = r.culture >= 75
+    ? '"함께 성장하는 좋은 문화" 방향성에 잘 맞는 성향입니다. 팀워크와 즐거운 분위기를 중요하게 생각하는 지원자입니다.'
+    : r.culture >= 55
+    ? '엘리아더의 문화에 적응 가능한 수준입니다. 온보딩 과정에서 문화를 충분히 공유해주세요.'
+    : '개인 성취 지향이 강해 팀 문화 적응에 시간이 필요할 수 있습니다. 면접에서 팀워크 경험을 확인해보세요.';
+  $('cultureGrade').textContent = cultureGrade;
+  $('cultureDesc').textContent = cultureDesc;
+  if (r.culture < 55) $('cultureCard').classList.add('warning');
+  
+  // 면접 질문 생성
+  renderInterviewQuestions(r);
+}
+
+function animateNumber(id, from, to, duration) {
+  const el = $(id);
+  const start = performance.now();
+  function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(from + (to - from) * eased);
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ===============================
+// 면접관용 맞춤 질문 자동 생성
+// ===============================
+
+const INTERVIEW_QUESTIONS = {
+  D: [
+    { q:"지난 1년간 가장 강하게 주장을 밀어붙였던 일과, 그 결과는 어땠나요?", intent:"추진력의 실제 사례와 결과 검증. 공격성이 팀에 피해를 주진 않았는지 확인." },
+    { q:"팀원과 의견이 강하게 충돌했던 경험이 있다면 어떻게 풀었나요?", intent:"갈등 해결 방식 확인. 관계보다 성과만 중시하는 타입인지 검증." },
+    { q:"매장에서 원장님 지시와 본인 생각이 다르면 어떻게 행동하시겠어요?", intent:"권위에 대한 태도와 조직 수용성 확인." },
+    { q:"본인보다 경력이 많은 선배가 느리게 일할 때, 어떻게 대하시겠어요?", intent:"성과 지향이 선배 관계에 미치는 영향 확인. 위계 존중 태도 검증." },
+    { q:"목표를 달성하지 못했을 때, 본인은 어떻게 반응하는 편인가요?", intent:"좌절 내성과 회복탄력성 확인. 성과 압박 하에서의 행동 패턴 검증." },
+    { q:"빠르게 결정해야 하는 상황에서, 정보가 부족해도 밀고 나간 경험이 있나요?", intent:"즉흥 판단력과 리스크 감수 성향 확인. 신중함 부족 가능성 체크." }
+  ],
+  I: [
+    { q:"혼자서 반복적이고 세심한 작업을 해야 할 때 어떻게 집중하시나요?", intent:"사교성 뒤의 꼼꼼함·지속력 검증. I형의 약점 체크." },
+    { q:"고객에게 지킬 수 없는 약속을 한 경험이 있나요? 있다면 어떻게 수습했나요?", intent:"말이 앞서는 경향 체크. 책임감 확인." },
+    { q:"분위기를 띄우는 것 외에, 본인이 팀에 기여할 수 있는 실질적인 능력은 무엇인가요?", intent:"'분위기 메이커' 이미지 너머의 구체적 역량 검증." },
+    { q:"마음에 안 드는 고객을 상대해야 할 때, 본인의 진짜 감정은 어떻게 처리하시나요?", intent:"감정 기복과 자기 관리 능력 확인. 표면 친화력 뒤의 실제 상태 체크." },
+    { q:"혼자 있는 시간이 길어지면 어떤 기분이 드세요?", intent:"외부 자극 의존도 확인. 매장이 한가할 때 집중력 유지 가능성 검증." },
+    { q:"칭찬받지 못하는 기간이 길어질 때, 본인은 어떻게 동기를 유지하시나요?", intent:"외부 인정에 대한 의존도 체크. 내적 동기의 존재 여부 확인." }
+  ],
+  S: [
+    { q:"이전 직장에서 가장 힘들었던 변화와 어떻게 적응하셨는지 말씀해주세요.", intent:"변화 적응력 확인. 새로운 시술·시스템 도입 시 대응 능력 검증." },
+    { q:"본인 의견이 다른데도 참고 넘어간 경험이 있다면, 나중에 어떻게 풀렸나요?", intent:"자기 표현력 체크. 속으로 쌓아두는 타입인지 검증." },
+    { q:"3년 뒤 본인은 어떤 모습일 것 같고, 그걸 위해 지금 뭘 하고 계시나요?", intent:"현실 안주형인지, 조용한 성장형인지 구분." },
+    { q:"새로운 기술이나 트렌드가 나왔을 때, 얼마나 빨리 시도해보시나요?", intent:"변화에 대한 저항 수준 확인. 보수성이 성장 한계가 되는지 검증." },
+    { q:"매장에서 갑자기 급한 일이 생겼을 때, 본인은 어떻게 대응하시나요?", intent:"즉흥 대응력과 유연성 확인. 계획 변경 스트레스 내성 체크." },
+    { q:"직접 나서서 새로운 제안을 한 경험이 있나요? 있다면 왜 그랬나요?", intent:"수동성 뒤의 주도성 여부 확인. 성장 가능성 검증." }
+  ],
+  C: [
+    { q:"처음 해보는 시술을 당장 고객에게 해야 한다면 어떻게 대응하시겠어요?", intent:"즉흥 대응력 확인. 완벽 준비 없이는 못 움직이는 타입인지 검증." },
+    { q:"동료가 본인 기준보다 낮은 퀄리티로 일할 때 어떻게 대하시나요?", intent:"완벽주의가 팀 관계에 미치는 영향 확인." },
+    { q:"체계가 없는 상황에서 본인이 먼저 움직여야 했던 경험이 있나요?", intent:"매뉴얼 없을 때 능동성 체크. 기준이 없으면 멈추는 타입인지 검증." },
+    { q:"고객이 본인 의견을 무시하고 무리한 요구를 할 때 어떻게 하시나요?", intent:"전문성 주장과 고객 응대의 균형 확인. 원칙주의의 유연성 체크." },
+    { q:"본인이 실수했을 때, 얼마나 오래 신경 쓰는 편인가요?", intent:"자기 비판 성향의 강도 확인. 회복력과 과도한 자책 여부 체크." },
+    { q:"속도가 빠른 직장과 정확한 직장 중 하나를 고른다면 어디가 맞으세요?", intent:"본인 성향 자각도 확인. 엘리아더의 속도감에 적응 가능성 검증." }
+  ]
+};
+
+// 포지션별 필수 질문 확장
+const POSITION_QUESTIONS = {
+  designer: [
+    { q:"본인이 지금까지 만들어낸 월 최고 매출과, 그걸 가능하게 한 방법은 무엇인가요?", intent:"실제 매출 능력과 자기 마케팅 역량 검증." },
+    { q:"단골 고객을 만드는 본인만의 방식이 있다면 무엇인가요?", intent:"재방문율을 만드는 소프트 스킬 확인." },
+    { q:"SNS나 네이버 플레이스에서 본인을 어떻게 홍보하고 계시나요?", intent:"자기 브랜딩 의지와 디지털 마케팅 활용 능력 검증." },
+    { q:"컴플레인 고객을 본인의 단골로 만들었던 경험이 있으신가요?", intent:"위기를 기회로 전환하는 능력 확인. 실전 CS 역량 검증." }
+  ],
+  staff: [
+    { q:"배우는 속도가 느린 편이라는 피드백을 받는다면 어떻게 대응하시겠어요?", intent:"성장 의지와 피드백 수용력 검증." },
+    { q:"선배가 너무 바빠서 제대로 못 가르쳐줄 때, 본인은 어떻게 배우시겠어요?", intent:"자기주도 학습 능력 확인." },
+    { q:"단순 반복 업무(샴푸, 정리 등)를 몇 개월씩 해야 한다면 어떻게 버티시겠어요?", intent:"인내심과 장기 근속 가능성 검증. 인턴 기간 이탈 리스크 체크." },
+    { q:"본인이 가장 닮고 싶은 디자이너가 있다면 누구이고, 왜인가요?", intent:"롤모델 유무를 통한 성장 방향성 확인. 업계 관심도 검증." }
+  ]
+};
+
+// 신뢰도(일관성) 기반 추가 질문 - 낮을수록 심층 검증
+const CONSISTENCY_QUESTIONS = {
+  low: [  // 0-33%: 포장 의심
+    { q:"'가장 힘들었던 순간'과 '가장 자랑스러웠던 순간'을 각각 구체적으로 말씀해주세요.", intent:"극단 상황을 대비시켜 꾸며낸 답변 여부 검증. 구체성 없으면 포장 가능성 높음." },
+    { q:"본인의 가장 큰 단점 한 가지와, 그게 드러났던 최근 사례를 말씀해주세요.", intent:"자기 인식의 솔직도 확인. '장점으로 포장한 단점' 답변 경계." },
+    { q:"이전 직장 동료들이 본인을 어떻게 평가할 것 같나요? 좋은 점과 나쁜 점 모두요.", intent:"타인 관점을 통한 객관화. 포장 답변 vs 실제 관계의 일치도 확인." }
+  ],
+  mid: [  // 34-66%: 일부 확인 필요
+    { q:"본인이 평소와 다르게 행동했던 순간이 있다면 언제였고, 왜 그랬나요?", intent:"상황별 일관성 확인. 성향 변화의 원인과 패턴 파악." },
+    { q:"스트레스를 많이 받을 때와 평온할 때, 본인은 얼마나 다른 사람이 되나요?", intent:"성향의 안정성 검증. 극단 상황에서의 행동 예측." }
+  ],
+  high: [  // 67-100%: 추가 검증 불필요, 심화 질문
+    { q:"본인의 성향에서 앞으로 바꾸고 싶은 부분이 있다면 무엇인가요?", intent:"자기 인식의 깊이와 성장 의지 확인." }
+  ]
+};
+
+// 문화핏 기반 질문 - 엘리아더 핵심가치 검증
+const CULTURE_QUESTIONS = {
+  low: [  // 0-54%: 문화 적응 리스크
+    { q:"'함께 성장'이라는 말을 들으면 어떤 생각이 드시나요?", intent:"팀 중심 가치관에 대한 실제 태도 확인. 개인주의 성향 검증." },
+    { q:"본인이 동료보다 빨리 성장하고 있다고 느낄 때, 어떻게 행동하시겠어요?", intent:"팀워크 우선 여부 확인. 독주형 vs 동반형 구분." },
+    { q:"즐거운 분위기와 효율적인 업무 중 더 중요하게 생각하는 건 무엇인가요?", intent:"엘리아더 문화(즐거운 분위기)와의 가치 정렬 검증." }
+  ],
+  mid: [  // 55-74%: 적응 가능하나 검증
+    { q:"이전 직장의 문화 중 가장 마음에 들었던 것과 싫었던 것은 무엇인가요?", intent:"문화 선호도 확인. 엘리아더 문화와의 맞물림 예측." },
+    { q:"팀원 중 한 명이 지속적으로 소극적일 때, 본인은 어떻게 대하시겠어요?", intent:"팀 분위기에 대한 책임감과 개입 수준 확인." }
+  ],
+  high: [  // 75-100%: 문화 정렬 확인
+    { q:"'행복한 미용사'라는 말이 본인에게 어떤 의미인가요?", intent:"엘리아더 철학과의 공명도 깊이 확인. 장기 근속 가능성 예측." }
+  ]
+};
+
+// 배열에서 무작위로 N개 선택 헬퍼
+function pickRandom(arr, n) {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Math.min(n, arr.length));
+}
+
+function renderInterviewQuestions(r) {
+  const list = $('interviewList');
+  list.innerHTML = '';
+  
+  // 1. 주 유형 기반: 6개 중 3개 무작위
+  const primaryQs = pickRandom(INTERVIEW_QUESTIONS[r.primary], 3);
+  
+  // 2. 보조 유형 (2순위): 6개 중 1개 무작위
+  const secondary = Object.keys(r.pct)
+    .filter(t => t !== r.primary)
+    .sort((a,b) => r.pct[b] - r.pct[a])[0];
+  const secondaryQ = pickRandom(INTERVIEW_QUESTIONS[secondary], 1);
+  
+  // 3. 포지션별: 4개 중 2개 무작위
+  const positionQs = pickRandom(POSITION_QUESTIONS[applicant.position], 2);
+  
+  // 4. 신뢰도 기반 질문 (점수에 따라 다른 풀에서 선택)
+  let consistencyTier;
+  if (r.consistency < 34) consistencyTier = 'low';
+  else if (r.consistency < 67) consistencyTier = 'mid';
+  else consistencyTier = 'high';
+  
+  const consistencyQs = pickRandom(CONSISTENCY_QUESTIONS[consistencyTier], 
+                                    consistencyTier === 'low' ? 2 : 1);
+  
+  // 5. 문화핏 기반 질문
+  let cultureTier;
+  if (r.culture < 55) cultureTier = 'low';
+  else if (r.culture < 75) cultureTier = 'mid';
+  else cultureTier = 'high';
+  
+  const cultureQs = pickRandom(CULTURE_QUESTIONS[cultureTier], 
+                                cultureTier === 'low' ? 2 : 1);
+  
+  // 전체 질문 조합 (섹션 구분자 포함)
+  const sections = [
+    { label: `주 성향 검증 · ${TYPE_INFO[r.primary].name.split(' ')[0]}`, items: primaryQs },
+    { label: `보조 성향 확인 · ${TYPE_INFO[secondary].name.split(' ')[0]}`, items: secondaryQ },
+    { label: `포지션 역량 · ${applicant.position === 'designer' ? '디자이너' : '스탭/인턴'}`, items: positionQs },
+    { label: `신뢰도 기반 · ${consistencyTier === 'low' ? '심층 검증' : consistencyTier === 'mid' ? '일부 확인' : '심화 탐색'}`, items: consistencyQs },
+    { label: `문화 적합도 · ${cultureTier === 'low' ? '문화 검증' : cultureTier === 'mid' ? '문화 정렬' : '가치 공명'}`, items: cultureQs }
+  ];
+  
+  // 이미지 저장 시에도 동일한 질문을 쓰도록 저장
+  lastInterviewSections = sections;
+  
+  let questionNum = 1;
+  sections.forEach(section => {
+    if (section.items.length === 0) return;
+    
+    // 섹션 헤더
+    const header = document.createElement('div');
+    header.style.cssText = 'margin: 24px 0 12px; padding: 0 4px;';
+    header.innerHTML = `
+      <div style="font-family: var(--serif); font-style: italic; font-size: 13px; 
+                  color: var(--accent); letter-spacing: 0.2em; margin-bottom: 4px;">
+        — ${section.label.toUpperCase()} —
+      </div>
+    `;
+    list.appendChild(header);
+    
+    // 섹션 질문들
+    section.items.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'interview-item';
+      div.innerHTML = `
+        <div class="interview-num">${String(questionNum).padStart(2, '0')}</div>
+        <div class="interview-q">
+          <h4>${item.q}</h4>
+          <div class="intent"><strong>확인 포인트</strong> · ${item.intent}</div>
+        </div>
+      `;
+      list.appendChild(div);
+      questionNum++;
+    });
+  });
+}
+
+// ===============================
+// 재시작
+// ===============================
+
+function restart() {
+  if (!confirm('새 검사를 시작합니다. 현재 결과는 사라집니다. 계속하시겠어요?')) return;
+  $('screen-result').classList.remove('active');
+  $('screen-gate').classList.remove('active');
+  $('screen-guide').classList.remove('active');
+  $('screen-intro').classList.add('active');
+  $('header').style.display = 'none';
+  $('applicantName').value = '';
+  $('applicantPosition').value = '';
+  $('consistencyCard').classList.remove('warning');
+  $('cultureCard').classList.remove('warning');
+  enteredCode = "";
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  checkStartReady();
+}
+
+// ===============================
+// 결과 저장 (인포그래픽 Canvas 직접 생성)
+// ===============================
+
+// 저장 메뉴 토글
+$('saveMenuBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  $('saveOptions').classList.toggle('open');
+});
+
+document.addEventListener('click', () => {
+  $('saveOptions').classList.remove('open');
+});
+
+function getFileName() {
+  const date = new Date();
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const safeName = (applicant.name || 'applicant').replace(/[^a-zA-Z0-9가-힣]/g, '_');
+  return `ELLYARTHUR_DISC_${safeName}_${y}${m}${d}`;
+}
+
+function showSaving() {
+  $('savingOverlay').classList.add('show');
+  $('saveOptions').classList.remove('open');
+}
+
+function hideSaving() {
+  $('savingOverlay').classList.remove('show');
+}
+
+// 마지막 계산 결과 저장용
+let lastResult = null;
+let lastInterviewSections = null;  // 생성된 면접 질문 섹션 저장
+
+// 인포그래픽 생성 (고해상도 Canvas)
+// includeQuestions: true면 면접 질문 섹션 포함
+function generateInfographic(includeQuestions = true) {
+  const W = 1200;  // 캔버스 너비
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  const r = lastResult;
+  const info = TYPE_INFO[r.primary];
+  const strengths = info.strengths;
+  const cautions = info.cautions;
+  
+  // 면접 질문 생성 (includeQuestions 일 때만)
+  // renderInterviewQuestions에서 이미 선택된 섹션 사용 (화면과 이미지 일치)
+  let sections = [];
+  let totalQCount = 0;
+  if (includeQuestions && lastInterviewSections) {
+    sections = lastInterviewSections;
+    totalQCount = sections.reduce((sum, s) => sum + s.items.length, 0);
+  }
+  
+  // 높이 계산 (동적) - 질문지 유무 + 실제 질문 수에 따라
+  let H;
+  if (includeQuestions) {
+    // 섹션 헤더(40px) + 카드(122px) * 질문수 + 기본 1400px
+    const sectionCount = sections.filter(s => s.items.length > 0).length;
+    H = 1500 + (sectionCount * 50) + (totalQCount * 122);
+  } else {
+    H = 1500;  // 질문지 없는 요약 버전
+  }
+  
+  canvas.width = W;
+  canvas.height = H;
+  
+  // === 색상 팔레트 ===
+  const C = {
+    bg: '#F5F1EA',
+    bg2: '#EFE8DC',
+    ink: '#2B2620',
+    inkSoft: '#6B6258',
+    line: '#D9CFBE',
+    accent: '#8B6F47',
+    accentSoft: '#C4A77D',
+    card: '#FBF7F0',
+    warn: '#B54D3E'
+  };
+  
+  // === 배경 ===
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, W, H);
+  
+  // === 상단 장식 라인 ===
+  ctx.fillStyle = C.accent;
+  ctx.fillRect(0, 0, W, 6);
+  
+  // === 헤더 ===
+  let y = 80;
+  
+  // 브랜드
+  ctx.fillStyle = C.ink;
+  ctx.font = '500 32px "Cormorant Garamond", serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ELLY', W/2 - 50, y);
+  ctx.fillStyle = C.accent;
+  ctx.font = 'italic 500 32px "Cormorant Garamond", serif';
+  ctx.fillText('&', W/2, y);
+  ctx.fillStyle = C.ink;
+  ctx.font = '500 32px "Cormorant Garamond", serif';
+  ctx.fillText('ARTHUR', W/2 + 55, y);
+  
+  y += 20;
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = '400 13px "Noto Serif KR", serif';
+  ctx.fillText('DISC ASSESSMENT REPORT', W/2, y);
+  
+  // 구분선
+  y += 30;
+  ctx.fillStyle = C.line;
+  ctx.fillRect(100, y, W - 200, 1);
+  
+  // === 지원자 정보 ===
+  y += 70;
+  ctx.fillStyle = C.accent;
+  ctx.font = 'italic 500 16px "Cormorant Garamond", serif';
+  ctx.fillText('— APPLICANT —', W/2, y);
+  
+  y += 50;
+  ctx.fillStyle = C.ink;
+  ctx.font = '500 64px "Cormorant Garamond", "Noto Serif KR", serif';
+  ctx.fillText(applicant.name, W/2, y);
+  
+  y += 35;
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = '400 15px "Pretendard", sans-serif';
+  const positionText = applicant.position === 'designer' ? '헤어 디자이너' : '헤어 스탭 / 인턴';
+  const dateText = new Date().toLocaleDateString('ko-KR');
+  ctx.fillText(`${positionText} 지원  ·  ${dateText}`, W/2, y);
+  
+  // === 구분선 ===
+  y += 50;
+  ctx.fillStyle = C.accent;
+  ctx.fillRect(W/2 - 30, y, 60, 1);
+  
+  // === 주요 유형 + 점수 ===
+  y += 80;
+  
+  // 섹션 라벨
+  ctx.fillStyle = C.accent;
+  ctx.font = 'italic 400 14px "Cormorant Garamond", serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('I.  PRIMARY TYPE & PROFILE', 100, y);
+  
+  y += 20;
+  ctx.fillStyle = C.line;
+  ctx.fillRect(100, y, W - 200, 1);
+  
+  y += 50;
+  
+  // 왼쪽: 주요 유형 카드
+  const leftX = 100;
+  const cardW = 480;
+  const cardH = 380;
+  
+  // 카드 배경
+  ctx.fillStyle = C.card;
+  ctx.fillRect(leftX, y, cardW, cardH);
+  ctx.strokeStyle = C.line;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(leftX, y, cardW, cardH);
+  
+  // 왼쪽 액센트 바
+  ctx.fillStyle = C.accent;
+  ctx.fillRect(leftX, y, 4, cardH);
+  
+  // 카드 내용
+  ctx.textAlign = 'left';
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = 'italic 400 13px "Cormorant Garamond", serif';
+  ctx.fillText('— PRIMARY TYPE —', leftX + 40, y + 40);
+  
+  // 유형 문자 (큰 글씨)
+  ctx.fillStyle = C.accent;
+  ctx.font = '500 180px "Cormorant Garamond", serif';
+  ctx.fillText(r.primary, leftX + 30, y + 200);
+  
+  // 유형 이름
+  ctx.fillStyle = C.ink;
+  ctx.font = '500 26px "Noto Serif KR", serif';
+  ctx.fillText(info.name, leftX + 40, y + 240);
+  
+  // 설명 (줄바꿈)
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = '300 14px "Pretendard", sans-serif';
+  wrapText(ctx, info.desc, leftX + 40, y + 275, cardW - 80, 22);
+  
+  // 오른쪽: 점수 차트
+  const rightX = leftX + cardW + 40;
+  const chartW = W - rightX - 100;
+  
+  ctx.fillStyle = C.card;
+  ctx.fillRect(rightX, y, chartW, cardH);
+  ctx.strokeStyle = C.line;
+  ctx.strokeRect(rightX, y, chartW, cardH);
+  
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = 'italic 400 13px "Cormorant Garamond", serif';
+  ctx.fillText('— DISC PROFILE —', rightX + 40, y + 40);
+  
+  // 4개 점수 바
+  const typeOrder = ['D','I','S','C'];
+  const barStartY = y + 85;
+  const barSpacing = 72;
+  const barMaxW = chartW - 100;
+  
+  typeOrder.forEach((t, i) => {
+    const by = barStartY + (i * barSpacing);
+    
+    // 유형 문자
+    ctx.fillStyle = C.ink;
+    ctx.font = '500 32px "Cormorant Garamond", serif';
+    ctx.fillText(t, rightX + 40, by);
+    
+    // 유형 이름
+    ctx.fillStyle = C.inkSoft;
+    ctx.font = '400 13px "Pretendard", sans-serif';
+    ctx.fillText(TYPE_INFO[t].name.split(' ')[0], rightX + 80, by);
+    
+    // 점수 값
+    ctx.fillStyle = C.accent;
+    ctx.font = '500 24px "Cormorant Garamond", serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(r.pct[t], rightX + chartW - 40, by);
+    ctx.textAlign = 'left';
+    
+    // 바 배경
+    ctx.fillStyle = C.bg2;
+    ctx.fillRect(rightX + 40, by + 14, barMaxW, 4);
+    
+    // 바 채움
+    const fillW = (r.pct[t] / 100) * barMaxW;
+    // 그라데이션 대신 단색 (정확도↑)
+    ctx.fillStyle = t === r.primary ? C.accent : C.accentSoft;
+    ctx.fillRect(rightX + 40, by + 14, fillW, 4);
+  });
+  
+  y += cardH + 60;
+  
+  // === 직무 적합도 ===
+  ctx.fillStyle = C.accent;
+  ctx.font = 'italic 400 14px "Cormorant Garamond", serif';
+  ctx.fillText('II.  JOB FIT ANALYSIS', 100, y);
+  
+  y += 20;
+  ctx.fillStyle = C.line;
+  ctx.fillRect(100, y, W - 200, 1);
+  
+  y += 50;
+  
+  // 적합도 카드
+  const fitCardH = 320;
+  ctx.fillStyle = C.card;
+  ctx.fillRect(100, y, W - 200, fitCardH);
+  ctx.strokeStyle = C.line;
+  ctx.strokeRect(100, y, W - 200, fitCardH);
+  
+  // 왼쪽: 원형 차트
+  const ringCX = 260;
+  const ringCY = y + fitCardH/2;
+  const ringR = 90;
+  
+  // 배경 원
+  ctx.beginPath();
+  ctx.arc(ringCX, ringCY, ringR, 0, Math.PI * 2);
+  ctx.strokeStyle = C.bg2;
+  ctx.lineWidth = 6;
+  ctx.stroke();
+  
+  // 진행 원
+  ctx.beginPath();
+  ctx.arc(ringCX, ringCY, ringR, -Math.PI/2, -Math.PI/2 + (r.fit/100) * Math.PI * 2);
+  ctx.strokeStyle = C.accent;
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+  
+  // 퍼센트 숫자
+  ctx.fillStyle = C.ink;
+  ctx.font = '500 64px "Cormorant Garamond", serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(r.fit, ringCX, ringCY - 6);
+  ctx.font = '400 20px "Cormorant Garamond", serif';
+  ctx.fillStyle = C.inkSoft;
+  ctx.fillText('%', ringCX + 46, ringCY - 14);
+  
+  // 등급
+  ctx.fillStyle = C.accent;
+  ctx.font = 'italic 500 16px "Cormorant Garamond", serif';
+  const fitGrade = r.fit >= 85 ? 'EXCELLENT MATCH' : r.fit >= 70 ? 'GOOD MATCH' : r.fit >= 55 ? 'FAIR MATCH' : 'LOW MATCH';
+  ctx.fillText(fitGrade, ringCX, ringCY + ringR + 30);
+  
+  ctx.textBaseline = 'alphabetic';
+  
+  // 오른쪽: 설명
+  const descX = 420;
+  const descY = y + 50;
+  
+  ctx.textAlign = 'left';
+  ctx.fillStyle = C.ink;
+  ctx.font = '500 20px "Noto Serif KR", serif';
+  ctx.fillText(r.ideal.title, descX, descY);
+  
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = '300 14px "Pretendard", sans-serif';
+  wrapText(ctx, r.ideal.desc, descX, descY + 30, W - descX - 140, 22);
+  
+  // 강점/주의점
+  const splitY = descY + 140;
+  ctx.fillStyle = C.line;
+  ctx.fillRect(descX, splitY, W - descX - 140, 1);
+  
+  // 강점
+  ctx.fillStyle = C.accent;
+  ctx.font = '500 12px "Pretendard", sans-serif';
+  ctx.fillText('— 강점', descX, splitY + 30);
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = '300 13px "Pretendard", sans-serif';
+  strengths.forEach((s, i) => {
+    ctx.fillText('· ' + s, descX, splitY + 55 + (i * 20));
+  });
+  
+  // 주의점
+  const cautionX = descX + 340;
+  ctx.fillStyle = C.accent;
+  ctx.font = '500 12px "Pretendard", sans-serif';
+  ctx.fillText('— 주의점', cautionX, splitY + 30);
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = '300 13px "Pretendard", sans-serif';
+  cautions.forEach((c, i) => {
+    ctx.fillText('· ' + c, cautionX, splitY + 55 + (i * 20));
+  });
+  
+  y += fitCardH + 60;
+  
+  // === 신뢰도 & 문화핏 ===
+  ctx.fillStyle = C.accent;
+  ctx.font = 'italic 400 14px "Cormorant Garamond", serif';
+  ctx.fillText('III.  RELIABILITY & CULTURE FIT', 100, y);
+  
+  y += 20;
+  ctx.fillStyle = C.line;
+  ctx.fillRect(100, y, W - 200, 1);
+  
+  y += 50;
+  
+  // 2열 그리드
+  const miniCardW = (W - 200 - 30) / 2;
+  const miniCardH = 220;
+  
+  // 일관성 카드
+  drawMiniCard(ctx, 100, y, miniCardW, miniCardH, {
+    label: '— CONSISTENCY —',
+    value: r.consistency,
+    grade: r.consistency >= 66 ? 'HIGH · 신뢰도 높음' : r.consistency >= 33 ? 'MEDIUM · 보통' : 'LOW · 확인 필요',
+    desc: r.consistency >= 66 
+      ? '유사 문항에서 일관된 응답. 솔직한 응답으로 판단됩니다.'
+      : r.consistency >= 33
+      ? '일부 응답이 엇갈림. 면접 시 자연스럽게 재확인 권장.'
+      : '응답이 크게 엇갈림. 의도적 포장 가능성, 심층 검증 필요.',
+    warning: r.consistency < 33
+  }, C);
+  
+  // 문화핏 카드
+  drawMiniCard(ctx, 100 + miniCardW + 30, y, miniCardW, miniCardH, {
+    label: '— CULTURE FIT —',
+    value: r.culture,
+    grade: r.culture >= 75 ? 'STRONG · 높은 적합도' : r.culture >= 55 ? 'MODERATE · 적응 가능' : 'LOW · 검증 필요',
+    desc: r.culture >= 75
+      ? '"함께 성장" 문화에 잘 맞는 성향. 팀워크·긍정성이 강합니다.'
+      : r.culture >= 55
+      ? '엘리아더 문화에 적응 가능. 온보딩 시 문화 공유 필요.'
+      : '개인 성취 지향. 면접에서 팀워크 경험 확인 권장.',
+    warning: r.culture < 55
+  }, C);
+  
+  y += miniCardH + 60;
+  
+  // === 면접관용 질문 (includeQuestions일 때만) ===
+  if (includeQuestions && sections.length > 0) {
+    ctx.textAlign = 'left';
+    ctx.fillStyle = C.accent;
+    ctx.font = 'italic 400 14px "Cormorant Garamond", serif';
+    ctx.fillText('IV.  INTERVIEW QUESTIONS', 100, y);
+    
+    y += 20;
+    ctx.fillStyle = C.line;
+    ctx.fillRect(100, y, W - 200, 1);
+    
+    y += 30;
+    
+    // 섹션별 렌더링
+    let questionNum = 1;
+    sections.forEach(section => {
+      if (section.items.length === 0) return;
+      
+      // 섹션 라벨
+      y += 15;
+      ctx.fillStyle = C.accent;
+      ctx.font = 'italic 400 12px "Cormorant Garamond", serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`— ${section.label.toUpperCase()} —`, 100, y);
+      y += 20;
+      
+      // 섹션 질문들
+      section.items.forEach((item) => {
+        const qCardH = 110;
+        
+        ctx.fillStyle = C.card;
+        ctx.fillRect(100, y, W - 200, qCardH);
+        ctx.strokeStyle = C.line;
+        ctx.strokeRect(100, y, W - 200, qCardH);
+        
+        // 번호
+        ctx.fillStyle = C.accent;
+        ctx.font = 'italic 500 32px "Cormorant Garamond", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(String(questionNum).padStart(2, '0'), 140, y + 50);
+        
+        // 질문
+        ctx.textAlign = 'left';
+        ctx.fillStyle = C.ink;
+        ctx.font = '500 15px "Noto Serif KR", serif';
+        wrapText(ctx, item.q, 200, y + 35, W - 320, 22);
+        
+        // 확인 포인트
+        ctx.fillStyle = C.accent;
+        ctx.font = '500 11px "Pretendard", sans-serif';
+        ctx.fillText('확인 포인트', 200, y + qCardH - 25);
+        
+        ctx.fillStyle = C.inkSoft;
+        ctx.font = '300 12px "Pretendard", sans-serif';
+        const intentText = '· ' + item.intent;
+        const maxIntentW = W - 340;
+        const truncated = truncateText(ctx, intentText, maxIntentW);
+        ctx.fillText(truncated, 268, y + qCardH - 25);
+        
+        y += qCardH + 12;
+        questionNum++;
+      });
+    });
+  }
+  
+  // === 푸터 ===
+  y += 30;
+  ctx.fillStyle = C.line;
+  ctx.fillRect(100, y, W - 200, 1);
+  
+  y += 30;
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = 'italic 400 12px "Cormorant Garamond", serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ELLYARTHUR HAIR · CONFIDENTIAL RECRUITMENT DOCUMENT', W/2, y);
+  
+  // 실제 최종 높이로 조정
+  const finalH = y + 50;
+  if (finalH < H) {
+    // 재생성 (남은 빈 공간 제거)
+    const trimmed = document.createElement('canvas');
+    trimmed.width = W;
+    trimmed.height = finalH;
+    const tctx = trimmed.getContext('2d');
+    tctx.drawImage(canvas, 0, 0);
+    return trimmed;
+  }
+  
+  return canvas;
+}
+
+// 텍스트 줄바꿈 헬퍼
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const chars = text.split('');
+  let line = '';
+  let currentY = y;
+  
+  for (let i = 0; i < chars.length; i++) {
+    const testLine = line + chars[i];
+    const metrics = ctx.measureText(testLine);
+    
+    if (metrics.width > maxWidth && line.length > 0) {
+      ctx.fillText(line, x, currentY);
+      line = chars[i];
+      currentY += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) ctx.fillText(line, x, currentY);
+}
+
+// 텍스트 자르기 헬퍼
+function truncateText(ctx, text, maxWidth) {
+  let truncated = text;
+  while (ctx.measureText(truncated + '...').width > maxWidth && truncated.length > 0) {
+    truncated = truncated.slice(0, -1);
+  }
+  return truncated === text ? text : truncated + '...';
+}
+
+// 미니 카드 그리기 헬퍼
+function drawMiniCard(ctx, x, y, w, h, data, C) {
+  ctx.fillStyle = C.card;
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = data.warning ? C.warn : C.line;
+  ctx.lineWidth = data.warning ? 2 : 1;
+  ctx.strokeRect(x, y, w, h);
+  ctx.lineWidth = 1;
+  
+  ctx.textAlign = 'left';
+  
+  ctx.fillStyle = C.accent;
+  ctx.font = 'italic 400 13px "Cormorant Garamond", serif';
+  ctx.fillText(data.label, x + 32, y + 40);
+  
+  // 값
+  ctx.fillStyle = data.warning ? C.warn : C.ink;
+  ctx.font = '500 52px "Cormorant Garamond", serif';
+  ctx.fillText(data.value, x + 32, y + 95);
+  ctx.font = '500 24px "Cormorant Garamond", serif';
+  ctx.fillStyle = C.inkSoft;
+  const valueW = ctx.measureText(data.value).width;
+  ctx.fillText('%', x + 32 + 60, y + 95);
+  
+  // 등급
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = '400 14px "Noto Serif KR", serif';
+  ctx.fillText(data.grade, x + 32, y + 130);
+  
+  // 구분선
+  ctx.fillStyle = C.line;
+  ctx.fillRect(x + 32, y + 150, w - 64, 1);
+  
+  // 설명
+  ctx.fillStyle = C.inkSoft;
+  ctx.font = '300 12px "Pretendard", sans-serif';
+  wrapText(ctx, data.desc, x + 32, y + 175, w - 64, 18);
+}
+
+// 이미지 저장 (iOS/iPadOS 사진첩 저장 - 로컬 파일 환경 대응)
+// includeQuestions: true면 면접 질문 포함, false면 요약만
+async function saveAsImage(includeQuestions = true) {
+  if (!lastResult) { alert('결과 데이터가 없습니다.'); return; }
+  
+  showSaving();
+  try {
+    await new Promise(r => setTimeout(r, 200));
+    const canvas = generateInfographic(includeQuestions);
+    const suffix = includeQuestions ? 'FULL' : 'SUMMARY';
+    const fileName = `${getFileName()}_${suffix}.png`;
+    
+    // iOS/iPadOS 감지 (iPad는 MacIntel + maxTouchPoints > 1로 식별됨)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    const dataUrl = canvas.toDataURL('image/png');
+    
+    // iOS에서는 항상 가이드 모달로 처리 (Web Share API가 로컬 파일에서 불안정)
+    if (isIOS) {
+      hideSaving();
+      showIOSSaveGuide(dataUrl, fileName);
+      return;
+    }
+    
+    // 데스크톱/안드로이드는 다운로드 링크
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = fileName;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      hideSaving();
+    }, 'image/png');
+  } catch (err) {
+    console.error(err);
+    alert('이미지 저장 중 오류: ' + err.message);
+    hideSaving();
+  }
+}
+
+// iOS 사진첩 저장 가이드 모달 (로컬 파일에서도 100% 작동)
+function showIOSSaveGuide(dataUrl, fileName) {
+  const modal = document.createElement('div');
+  modal.className = 'ios-save-modal';
+  modal.innerHTML = `
+    <div class="ios-save-content">
+      <button class="ios-close" onclick="closeIOSModal(this)">✕</button>
+      <div class="ios-label">— SAVE TO PHOTOS —</div>
+      <h3 class="ios-title">사진첩에 저장하기</h3>
+      <p class="ios-desc">
+        아래 이미지를 <strong>꾸욱 길게 눌러서</strong><br>
+        <strong>"사진에 저장"</strong>을 선택해주세요
+      </p>
+      <div class="ios-image-wrap">
+        <img src="${dataUrl}" alt="DISC 결과" class="ios-save-image" 
+             ondragstart="return true;">
+      </div>
+      <div class="ios-hint">
+        💡 저장 후 아이패드 <strong>사진</strong> 앱에서 확인할 수 있습니다<br>
+        💬 카카오톡·에어드롭으로도 바로 공유 가능해요
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  
+  // 스크롤 방지
+  document.body.style.overflow = 'hidden';
+  
+  // 모달 바깥 탭 시 닫기
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+      document.body.style.overflow = '';
+    }
+  });
+}
+
+// 모달 닫기 함수 (전역)
+function closeIOSModal(btn) {
+  const modal = btn.closest('.ios-save-modal');
+  if (modal) modal.remove();
+  document.body.style.overflow = '';
+}
+
+</script>
+</body>
+</html>
