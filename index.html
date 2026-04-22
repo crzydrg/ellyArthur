@@ -160,12 +160,27 @@
     transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   }
   
+  /* ===== 버전 태그 ===== */
+  .version-tag {
+    position: absolute;
+    top: 24px;
+    left: 40px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--line);
+    user-select: none;
+    pointer-events: none;
+  }
+  
   /* ===== 시작 화면 ===== */
   .screen {
     flex: 1;
     display: none;
     padding: 60px 48px 48px;
     animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
   }
   
   .screen.active { display: flex; flex-direction: column; }
@@ -219,9 +234,9 @@
   .intro-desc {
     font-size: 17px;
     line-height: 1.9;
-    color: var(--ink-soft);
+    color: var(--ink);
     margin-bottom: 48px;
-    font-weight: 300;
+    font-weight: 400;
   }
   
   .intro-meta {
@@ -1757,6 +1772,7 @@
 
   <!-- ===== 시작 화면 ===== -->
   <section class="screen active" id="screen-intro">
+    <div class="version-tag">v1.0</div>
     <div class="intro">
       <div class="intro-label">— RECRUITMENT ASSESSMENT —</div>
       <h1 class="intro-title">Know Yourself</h1>
@@ -1776,10 +1792,6 @@
         <div class="meta-item">
           <div class="meta-label">DURATION</div>
           <div class="meta-value">15<span class="unit">분</span></div>
-        </div>
-        <div class="meta-item">
-          <div class="meta-label">FORMAT</div>
-          <div class="meta-value">강제선택형</div>
         </div>
       </div>
       
