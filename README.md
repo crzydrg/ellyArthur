@@ -44,11 +44,11 @@
 
 ### 면접관 코드
 ```
-7273
+****
 ```
 > 코드 변경 시 파일 내 아래 한 줄만 수정하세요.
 ```javascript
-const INTERVIEWER_CODE = "7273";
+const INTERVIEWER_CODE = "****";
 ```
 
 ### 포지션별 이상형 프로파일
