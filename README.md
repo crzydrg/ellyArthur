@@ -144,7 +144,7 @@ README.md
 
 ```javascript
 // 파일 내 검색: INTERVIEWER_CODE
-const INTERVIEWER_CODE = "7273";  // 원하는 4자리로 변경
+const INTERVIEWER_CODE = "****";  // 원하는 4자리로 변경
 ```
 
 ### 버전 변경
